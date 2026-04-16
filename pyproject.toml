@@ -1,0 +1,11 @@
+[project]
+name = "my-knowledge"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "google-generativeai>=0.8.6",
+    "litellm>=1.83.8",
+    "networkx>=3.4.2",
+]
