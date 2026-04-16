@@ -1,88 +1,24 @@
 {
   "recentFiles": [
     {
-      "basename": "ADReSS-luz2020-alzheimer dementia recognition through spontaneous speech",
-      "path": "20_raw/20_papers/20.2_notes/alzheimer/Data/ADReSS-luz2020-alzheimer dementia recognition through spontaneous speech.md"
+      "basename": "index",
+      "path": "30_wiki/index.md"
     },
     {
-      "basename": "README",
-      "path": "README.md"
-    },
-    {
-      "basename": "Adolfo2024-toolkit to examine lifelike language(TELL)",
-      "path": "20_raw/20_papers/20.2_notes/alzheimer/App/Adolfo2024-toolkit to examine lifelike language(TELL).md"
-    },
-    {
-      "basename": "Pahar2025 - cognospeak",
-      "path": "20_raw/20_papers/20.2_notes/alzheimer/App/Pahar2025 - cognospeak.md"
-    },
-    {
-      "basename": "robin-2021-digital-speech",
-      "path": "30_wiki/sources/papers/robin-2021-digital-speech.md"
-    },
-    {
-      "basename": "Robin2021-using digital speech assessments to detect early signs of cognitive impairment",
-      "path": "20_raw/20_papers/20.2_notes/alzheimer/App/Robin2021-using digital speech assessments to detect early signs of cognitive impairment.md"
-    },
-    {
-      "basename": "pahar-2025-cognospeak",
-      "path": "30_wiki/sources/papers/pahar-2025-cognospeak.md"
-    },
-    {
-      "basename": "alty-2024-taptalk",
-      "path": "30_wiki/sources/papers/alty-2024-taptalk.md"
-    },
-    {
-      "basename": "adolfo-2024-tell-toolkit",
-      "path": "30_wiki/sources/papers/adolfo-2024-tell-toolkit.md"
-    },
-    {
-      "basename": "adolfo-2025-tell-v2",
-      "path": "30_wiki/sources/papers/adolfo-2025-tell-v2.md"
+      "basename": "log",
+      "path": "30_wiki/log.md"
     },
     {
       "basename": "WIKI_STATUS",
       "path": "WIKI_STATUS.md"
     },
     {
-      "basename": "Alty2024-development of a smartphone screening test for precilical ad and validation across the dementia continuum",
-      "path": "20_raw/20_papers/20.2_notes/alzheimer/App/Alty2024-development of a smartphone screening test for precilical ad and validation across the dementia continuum.md"
-    },
-    {
-      "basename": "1_Operational-amplifiers (OP-AMP)",
-      "path": "20_raw/10_notes/20.02_Signal_Processing/2_hardware-biosignal-processing/1_Operational-amplifiers (OP-AMP).md"
+      "basename": "README",
+      "path": "README.md"
     },
     {
       "basename": "LICENSE",
       "path": "LICENSE.md"
-    },
-    {
-      "basename": "1_Total-signal-processing",
-      "path": "20_raw/10_notes/20.02_Signal_Processing/1_Total-signal-processing.md"
-    },
-    {
-      "basename": "2_Total-hardware-biosignal-processing",
-      "path": "20_raw/10_notes/20.02_Signal_Processing/2_Total-hardware-biosignal-processing.md"
-    },
-    {
-      "basename": "Adolfo2025-Toolkit to Examine Lifelike Language v2 Optimizing Speech Biomarkers of Neurodegeneration",
-      "path": "20_raw/20_papers/20.2_notes/alzheimer/App/Adolfo2025-Toolkit to Examine Lifelike Language v2 Optimizing Speech Biomarkers of Neurodegeneration.md"
-    },
-    {
-      "basename": "robin2021-using digital speech assessments to detect early signs of cognitive impairment",
-      "path": "20_raw/20_papers/20.3_pdf/alzheimer/App/robin2021-using digital speech assessments to detect early signs of cognitive impairment.pdf"
-    },
-    {
-      "basename": "Pahar2025 - cognospeak",
-      "path": "20_raw/20_papers/20.3_pdf/alzheimer/App/Pahar2025 - cognospeak.pdf"
-    },
-    {
-      "basename": "alty2024-development of a smartphone screening test for precilical ad and validation across the dementia continuum",
-      "path": "20_raw/20_papers/20.3_pdf/alzheimer/App/alty2024-development of a smartphone screening test for precilical ad and validation across the dementia continuum.pdf"
-    },
-    {
-      "basename": "Adolft2025-supplementary-tell-v2",
-      "path": "20_raw/20_papers/20.3_pdf/alzheimer/App/Adolft2025-supplementary-tell-v2.pdf"
     },
     {
       "basename": "Paper Summary Template",
@@ -91,54 +27,6 @@
     {
       "basename": "Default Property Template",
       "path": "10_System/Templates/Default Property Template.md"
-    },
-    {
-      "basename": "Benjamens2020-the state of AI based FDA approved medical devices and algorithms",
-      "path": "20_raw/20_papers/20.3_pdf/Topic--stop/other/Benjamens2020-the state of AI based FDA approved medical devices and algorithms.pdf"
-    },
-    {
-      "basename": "Daily Note Template",
-      "path": "10_System/Templates/Daily Note Template.md"
-    },
-    {
-      "basename": "s44400-025-00040-0",
-      "path": "20_raw/20_papers/20.3_pdf/alzheimer/alzheimer--stop/Technique/s44400-025-00040-0.pdf"
-    },
-    {
-      "basename": "s41598-024-56706-x",
-      "path": "20_raw/20_papers/20.3_pdf/alzheimer/alzheimer--stop/Technique/s41598-024-56706-x.pdf"
-    },
-    {
-      "basename": "jpad.2022.66",
-      "path": "20_raw/20_papers/20.3_pdf/alzheimer/alzheimer--stop/Technique/jpad.2022.66.pdf"
-    },
-    {
-      "basename": "2506.01129v1",
-      "path": "20_raw/20_papers/20.3_pdf/alzheimer/alzheimer--stop/Technique/2506.01129v1.pdf"
-    },
-    {
-      "basename": "wallace2015",
-      "path": "20_raw/20_papers/20.3_pdf/speech for kid/speech for kid--stop/writing/wallace2015.pdf"
-    },
-    {
-      "basename": "How many words make a sample  Determining the minimum number of word tokens needed in connected speech samples for child speech assessment",
-      "path": "20_raw/20_papers/20.3_pdf/speech for kid/speech for kid--stop/writing/How many words make a sample  Determining the minimum number of word tokens needed in connected speech samples for child speech assessment.pdf"
-    },
-    {
-      "basename": "guidelines-for-analysis-of-child-speech-data",
-      "path": "20_raw/20_papers/20.3_pdf/speech for kid/speech for kid--stop/writing/guidelines-for-analysis-of-child-speech-data.pdf"
-    },
-    {
-      "basename": "towey2020-CHOCSLAT",
-      "path": "20_raw/20_papers/20.3_pdf/speech for kid/App/towey2020-CHOCSLAT.pdf"
-    },
-    {
-      "basename": "Dien2020 - develop Vietnam aphasia test",
-      "path": "20_raw/20_papers/20.3_pdf/alzheimer/alzheimer--stop/thesis/Dien2020 - develop Vietnam aphasia test.pdf"
-    },
-    {
-      "basename": "Hampel2016 - the rising global tide of cognitive impairment",
-      "path": "20_raw/20_papers/20.3_pdf/alzheimer/alzheimer--stop/For Wiriting Introduction/Hampel2016 - the rising global tide of cognitive impairment.pdf"
     }
   ],
   "omittedPaths": [],

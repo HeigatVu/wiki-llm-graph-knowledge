@@ -1,6 +1,9 @@
 # Background
 - I based on description of Andrew Karpathy about [llm-wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). Besides, I also refer the idea of [SamurAIGPT](https://github.com/SamurAIGPT/llm-wiki-agent). I appreciate their suggestion because these idea inspire and guide me a lot to finish my workflow and code.
 - The reason I build this repo to solve one problem about linking between papers and suggest about my knowledge notes. So I leverage the power of LLM to suggest me fixing and writing in obsidian.
+- I also add WIKI_STATUS.md to track the status of my wiki when I use gemini.
+- In my opinion, each project or our knowledge should be seperated wiki. So I build this repo to manage **my knowledge and my project paper notes**.
+- When we use for project research with reading a lot of paper, we should use template in 10_System/Templates/Paper_Summary_Template.md. By constrast, for taking notes knowledge, we should use Default_Proterty_Template.md
 # Setup
 ## UV
 ```

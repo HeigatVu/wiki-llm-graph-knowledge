@@ -1,0 +1,320 @@
+{
+  "main": {
+    "id": "f8ccef84bf1fa76e",
+    "type": "split",
+    "children": [
+      {
+        "id": "1d3226d65b542cb6",
+        "type": "split",
+        "children": [
+          {
+            "id": "3ad2bdb31d334b8f",
+            "type": "tabs",
+            "dimension": 44.94274809160305,
+            "children": [
+              {
+                "id": "7310dd9b79c6cb59",
+                "type": "leaf",
+                "state": {
+                  "type": "empty",
+                  "state": {},
+                  "icon": "lucide-file",
+                  "title": "New tab"
+                }
+              }
+            ]
+          },
+          {
+            "id": "51d29f2c07d37a51",
+            "type": "tabs",
+            "dimension": 55.05725190839694,
+            "children": [
+              {
+                "id": "deb1269aec152fe7",
+                "type": "leaf",
+                "state": {
+                  "type": "terminal:terminal",
+                  "state": {
+                    "terminal:terminal": {
+                      "cwd": "/home/heigatvu/Obsidian/my-knowledge",
+                      "focus": false,
+                      "profile": {
+                        "args": [
+                          "--login"
+                        ],
+                        "executable": "/usr/bin/zsh",
+                        "followTheme": true,
+                        "name": "my-terminal",
+                        "platforms": {
+                          "darwin": false,
+                          "linux": true
+                        },
+                        "pythonExecutable": "python3",
+                        "restoreHistory": false,
+                        "rightClickAction": "copyPaste",
+                        "successExitCodes": [
+                          "0",
+                          "SIGINT",
+                          "SIGTERM"
+                        ],
+                        "terminalOptions": {
+                          "documentOverride": null
+                        },
+                        "type": "integrated",
+                        "useWin32Conhost": true
+                      },
+                      "serial": null
+                    }
+                  },
+                  "icon": "terminal",
+                  "title": "Terminal: heigatvu@fedora:~/Obsidian/1_original-source"
+                }
+              }
+            ]
+          }
+        ],
+        "direction": "horizontal"
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "fe80dcbda231ac08",
+    "type": "split",
+    "children": [
+      {
+        "id": "3d11c2b644124fd6",
+        "type": "tabs",
+        "dimension": 80.09950248756219,
+        "children": [
+          {
+            "id": "7d0bdc3cb3a6e79d",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "5b1fffb76cbce689",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "tag:total-signal-processing",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "7c89f901bf766e39",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      },
+      {
+        "id": "5cf2694a82564a15",
+        "type": "tabs",
+        "dimension": 19.900497512437813,
+        "children": [
+          {
+            "id": "f76acd37a16107e2",
+            "type": "leaf",
+            "state": {
+              "type": "recent-files",
+              "state": {},
+              "icon": "clock",
+              "title": "Recent Files"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 257.5
+  },
+  "right": {
+    "id": "87510591aecce802",
+    "type": "split",
+    "children": [
+      {
+        "id": "4feb326724f37d02",
+        "type": "tabs",
+        "dimension": 69.08396946564885,
+        "children": [
+          {
+            "id": "ebb038d10467220b",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "f9129414808fd7a2",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "2b14bc4b7b80eec0",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": true,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "b176786fa9a0e494",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "6b641cc6e230cfe9",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ],
+        "currentTab": 1
+      },
+      {
+        "id": "dc825bd3dd57238b",
+        "type": "tabs",
+        "dimension": 30.916030534351147,
+        "children": [
+          {
+            "id": "88d5ce8aec713cd6",
+            "type": "leaf",
+            "state": {
+              "type": "calendar",
+              "state": {},
+              "icon": "calendar-with-checkmark",
+              "title": "Calendar"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 320.5
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "canvas:Create new canvas": false,
+      "graph:Open graph view": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
+      "markdown-importer:Open format converter": false,
+      "audio-recorder:Start/stop recording": false,
+      "obsidian-excalidraw-plugin:New drawing": false,
+      "templater-obsidian:Templater": false,
+      "table-editor-obsidian:Advanced Tables Toolbar": false,
+      "terminal:Open terminal": false
+    }
+  },
+  "active": "deb1269aec152fe7",
+  "lastOpenFiles": [
+    "20_raw/20.3_pdf/Topic--stop/sound experience/sound-setting/Busquet2024 - supplyment/Data/Participant Data.xlsx",
+    "20_raw/20.3_pdf/Topic--stop/sound experience/sound-setting/Busquet2024 - supplyment/Data/ExtractedFeatures.csv",
+    "20_raw/20.3_pdf/Topic--stop/sound experience/sound-setting/Busquet2024 - supplyment/Code/Synthetic Data_Just3.Rmd",
+    "20_raw/20.3_pdf/Topic--stop/sound experience/sound-setting/Busquet2024 - supplyment/Code/Statistical Correction.Rmd",
+    "20_raw/20.3_pdf/Topic--stop/sound experience/sound-setting/Busquet2024 - supplyment/Code/ProcessPythonNamingData.R",
+    "20_raw/20.3_pdf/Topic--stop/sound experience/sound-setting/Busquet2024 - supplyment/Code/Predictive models_Gender.Rmd",
+    "20_raw/20.3_pdf/Topic--stop/sound experience/sound-setting/Busquet2024 - supplyment/Code/Predictive models.Rmd",
+    "20_raw/20.3_pdf/Topic--stop/sound experience/sound-setting/Busquet2024 - supplyment/Code/Plots and ANOVAs Manuscript.Rmd",
+    "20_raw/20.3_pdf/Topic--stop/sound experience/sound-setting/Busquet2024 - supplyment/Code/Plots and ANOVAs Appendix.Rmd",
+    "20_raw/20.3_pdf/Topic--stop/sound experience/sound-setting/Busquet2024 - supplyment/Code/Extract audio features.py",
+    "20_raw/20.3_pdf/Topic--stop/model/Spiking neural network/Paper/thesis/Wang2024 - realtime speech recognition using spiking neural networks.pdf",
+    "20_raw/20.2_notes/alzheimer/Protocol/Talkar24 - Detection of Cognitive Impairment And Alzheimer’s Disease Using a Speech and Language Based Protocol.md",
+    "20_raw/20.2_notes/alzheimer/Protocol/Macwhinney2011-AphasiaBank Methods for Studying Discourse.md",
+    "20_raw/20.2_notes/alzheimer/Protocol/Lanzi2023-dementiabank-theoretical-rationale-protocol-and-illustrative-analyses.md",
+    "20_raw/20.2_notes/alzheimer/App/Robin2021-using digital speech assessments to detect early signs of cognitive impairment.md",
+    "20_raw/20.2_notes/alzheimer/App/Pahar2025 - cognospeak.md",
+    "20_raw/20.2_notes/alzheimer/App/Alty2024-development of a smartphone screening test for precilical ad and validation across the dementia continuum.md",
+    "20_raw/20.2_notes/alzheimer/App/Adolfo2025-Toolkit to Examine Lifelike Language v2 Optimizing Speech Biomarkers of Neurodegeneration.md",
+    "20_raw/20.2_notes/alzheimer/App/Adolfo2024-toolkit to examine lifelike language(TELL).md",
+    "20_raw/20.2_notes/alzheimer/Data/masrani2017-Detecting Dementia through Retrospective Analysis of Routine Blog Posts by Bloggers with Dementia.md",
+    "20_raw/20.2_notes/alzheimer/Data/TAUKADIAL-luz2024-connected speech based cognitive assessment in Chinese and English.md",
+    "20_raw/20.2_notes/alzheimer/Data/Pitt_corpus-becker1994 - The Natural History of Alzheimer_s Disease.md",
+    "20_raw/20.2_notes/alzheimer/Data/ADReSSo-luz2021-Detecting cognitive decline using speech only The ADReSSo Challenge.md",
+    "20_raw/20.2_notes/alzheimer/Data/ADReSS-luz2020-alzheimer dementia recognition through spontaneous speech.md",
+    "20_raw/20.2_notes/alzheimer/Data/ADReSS-M-luz2024-An Overview of the ADReSS-M Signal Processing Grand Challenge on Multilingual Alzheimer’s Dementia Recognition Through Spontaneous Speech.md",
+    "20_raw/20_papers/20.2_notes/alzheimer/App/Adolfo2024-toolkit to examine lifelike language(TELL).md",
+    "20_raw/20_papers/20.2_notes/alzheimer/Protocol/Talkar24 - Detection of Cognitive Impairment And Alzheimer’s Disease Using a Speech and Language Based Protocol.md",
+    "20_raw/20_papers/20.2_notes/alzheimer/Protocol/Macwhinney2011-AphasiaBank Methods for Studying Discourse.md",
+    "CHAT Transcription System.md",
+    "20_raw/20_papers/20.2_notes/alzheimer/Protocol/Lanzi2023-dementiabank-theoretical-rationale-protocol-and-illustrative-analyses.md",
+    "20_raw/20_papers/20.2_notes/alzheimer/Data/TAUKADIAL-luz2024-connected speech based cognitive assessment in Chinese and English.md",
+    "20_raw/20_papers/20.2_notes/alzheimer/Data/Pitt_corpus-becker1994 - The Natural History of Alzheimer_s Disease.md",
+    "20_raw/20_papers/20.2_notes/alzheimer/Data/masrani2017-Detecting Dementia through Retrospective Analysis of Routine Blog Posts by Bloggers with Dementia.md",
+    "20_raw/20_papers/20.2_notes/alzheimer/Data/ADReSSo-luz2021-Detecting cognitive decline using speech only The ADReSSo Challenge.md",
+    "20_raw/20_papers/20.2_notes/alzheimer/Data/ADReSS-M-luz2024-An Overview of the ADReSS-M Signal Processing Grand Challenge on Multilingual Alzheimer’s Dementia Recognition Through Spontaneous Speech.md",
+    "20_raw/20_papers/20.2_notes/alzheimer/Data/ADReSS-luz2020-alzheimer dementia recognition through spontaneous speech.md",
+    "90_System/Attachments/Pasted image 20260417004322.png",
+    "90_System/Attachments/Pasted image 20260417004248.png",
+    "Untitled.canvas",
+    "gtqrfedgfdgfd.canvas"
+  ]
+}

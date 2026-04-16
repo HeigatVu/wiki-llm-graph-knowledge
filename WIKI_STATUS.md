@@ -1,15 +1,15 @@
 # Wiki Status
 Last updated: 2026-04-17
-Last action: ingest | CognoSpeak: an automatic, remote assessment of early cognitive decline in real-world conversational speech
+Last action: ingest | Operational Amplifiers in Biosignal Processing
 
 ## Stats
-- Papers: 6
-- Knowledge notes: 0
-- Entities: 17
-- Concepts: 34
+- Papers: 12
+- Knowledge notes: 3
+- Entities: 80
+- Concepts: 47
 
 ## Last Action Details
-Created 3 pages. Contradictions: 0
+Created 5 pages. Contradictions: 0
 
 ## Suggested Next Steps
 - Run `/wiki-query` to explore what was just added

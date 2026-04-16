@@ -1,25 +1,11 @@
-# Ignore all knowledge folders
-20_raw/*
-30_wiki/*
-40_output/*
-
-# Ignore Obsidian workspace settings (usually machine-specific)
-.obsidian/workspace.json
-.obsidian/backlink.json
-.obsidian/graph.json
-.obsidian/page-preview.json
-.obsidian/core-plugins.json (optional, but often kept)
-
 # Ignore media and deleted files
 10_System/Attachments/
 10_System/Archive/
 .trash/
 .venv/
-.env
 2_graph/
 
 # Keep system configuration, templates, and CLI settings
 !10_System/
 !10_System/Templates/
 !10_System/Templates/*.md
-!10_System/SEVERAL GOOD GITHUB.md
