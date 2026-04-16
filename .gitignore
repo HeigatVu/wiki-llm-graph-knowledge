@@ -15,7 +15,6 @@
 10_System/Archive/
 .trash/
 .venv/
-.env
 2_graph/
 
 # Keep system configuration, templates, and CLI settings
