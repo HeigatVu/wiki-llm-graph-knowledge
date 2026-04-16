@@ -11,7 +11,6 @@ REPO_ROOT = Path(__file__).parent.parent
 WIKI_DIR = REPO_ROOT / "30_wiki"
 LOG_FILE = WIKI_DIR / "log.md"
 INDEX_FILE = WIKI_DIR / "index.md"
-OVERVIEW_FILE = WIKI_DIR / "overview.md"
 SCHEMA_FILE = WIKI_DIR / "GEMINI.md"
 
 def sha256(text:str) -> str:
