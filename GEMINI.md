@@ -15,7 +15,7 @@ Example: "Wiki has 12 papers, 8 notes, 34 concepts. Last action: ingest | Attent
 ## How to Use
 
 Describe what you want in plain English:
-- *"Ingest this file: raw/papers/my-paper.md"*
+- *"Ingest this file: 20_raw/papers/my-paper.md"*
 - *"What does the wiki say about transformer models?"*
 - *"Check the wiki for orphan pages and contradictions"*
 - *"Build the knowledge graph"*
@@ -31,8 +31,8 @@ Or use shorthand triggers:
 ## Directory Layout
 
 ```
-raw/          # Immutable source documents — never modify these
-wiki/         # Agent owns this layer entirely
+20_raw/       # Immutable source documents — never modify these
+30_wiki/      # Agent owns this layer entirely
   index.md    # Catalog of all pages — update on every ingest
   log.md      # Append-only chronological record
   overview.md # Living synthesis across all sources
@@ -40,8 +40,8 @@ wiki/         # Agent owns this layer entirely
   entities/   # People, companies, projects, products
   concepts/   # Ideas, frameworks, methods, theories
   syntheses/  # Saved query answers
-graph/        # Auto-generated graph data
-tools/        # Optional standalone Python scripts
+2_graph/      # Auto-generated graph data
+1_tools/      # Optional standalone Python scripts
 ```
 
 ---
@@ -69,13 +69,13 @@ Use `[[PageName]]` wikilinks to link to other wiki pages.
 Triggered by: *"ingest <file>"*
 
 1. Read the source document fully
-2. Read `wiki/index.md` and `wiki/overview.md` for current wiki context
-3. Write `wiki/sources/<slug>.md` (source page format below)
-4. Update `wiki/index.md` — add entry under Sources
-5. Update `wiki/overview.md` — revise synthesis if warranted
+2. Read `30_wiki/index.md` and `30_wiki/overview.md` for current wiki context
+3. Write `30_wiki/sources/<slug>.md` (source page format below)
+4. Update `30_wiki/index.md` — add entry under Sources
+5. Update `30_wiki/overview.md` — revise synthesis if warranted
 6. Update/create entity and concept pages
 7. Flag contradictions with existing wiki content
-8. Append to `wiki/log.md`: `## [YYYY-MM-DD] ingest | <Title>`
+8. Append to `30_wiki/log.md`: `## [YYYY-MM-DD] ingest | <Title>`
 9. **Post-ingest validation** — check for broken `[[wikilinks]]`, verify all new pages are in `index.md`, print a change summary
 
 ### Source Page Format
@@ -86,7 +86,7 @@ title: "Source Title"
 type: source
 tags: []
 date: YYYY-MM-DD
-source_file: raw/...
+source_file: 20_raw/...
 ---
 
 ## Summary
@@ -116,7 +116,7 @@ title: "Concept or Topic Title"
 type: source
 tags: [personal-note]
 date: YYYY-MM-DD
-source_file: raw/...
+source_file: 20_raw/...
 ---
 
 ## Summary
@@ -176,10 +176,10 @@ date: YYYY-MM-DD
 
 Triggered by: *"query: <question>"*
 
-1. Read `wiki/index.md` — identify relevant pages
+1. Read `30_wiki/index.md` — identify relevant pages
 2. Read those pages
 3. Synthesize answer with `[[PageName]]` citations
-4. Offer to save as `wiki/syntheses/<slug>.md`
+4. Offer to save as `30_wiki/syntheses/<slug>.md`
 
 ---
 
@@ -195,7 +195,7 @@ Check for: orphan pages, broken links, contradictions, stale content, missing en
 
 Triggered by: *"build graph"*
 
-Try `python tools/build_graph.py --open` first. If unavailable, build graph.json and graph.html manually from wikilinks.
+Try `python run.py graph --open` first. If unavailable, build graph.json and graph.html manually from wikilinks.
 
 ---
 

@@ -50,19 +50,19 @@ def read_file(path: Path) -> str:
 def call_llm(prompt:str, max_tokens:int=8192) -> str:
     """Call LLM with prompt."""
     try:
-        from google.generativeai import genai
+        import google.generativeai as genai
     except ImportError:
         print("Error: google-generativeai not installed. Run: pip install google-generativeai")
         sys.exit(1)
         
-    api_key = os.getenv("GOOGLE_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        print("Error: GOOGLE_API_KEY not set in .env file")
+        print("Error: GEMINI_API_KEY not set in .env file")
         sys.exit(1)
     model = os.getenv("LLM_MODEL")
 
     genai.configure(api_key=api_key)
-    model_name = os.getenv("LLM_MODEL", "gemini-2.5-pro")
+    model_name = os.getenv("LLM_MODEL", "gemini-3-flash-preview")
     model = genai.GenerativeModel(model_name)
 
     response = model.generate_content(

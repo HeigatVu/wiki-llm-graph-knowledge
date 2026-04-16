@@ -11,6 +11,7 @@ REPO_ROOT = Path(__file__).parent.parent
 WIKI_DIR = REPO_ROOT / "30_wiki"
 LOG_FILE = WIKI_DIR / "log.md"
 INDEX_FILE = WIKI_DIR / "index.md"
+OVERVIEW_FILE = WIKI_DIR / "overview.md"
 SCHEMA_FILE = WIKI_DIR / "GEMINI.md"
 
 def sha256(text:str) -> str:
@@ -24,19 +25,19 @@ def read_file(path:Path) -> str:
 def call_llm(prompt:str, max_tokens:int=8192) -> str:
     """Call LLM with prompt."""
     try:
-        from google.generativeai import genai
+        import google.generativeai as genai
     except ImportError:
         print("Error: google-generativeai not installed. Run: pip install google-generativeai")
         sys.exit(1)
         
-    api_key = os.getenv("GOOGLE_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        print("Error: GOOGLE_API_KEY not set in .env file")
+        print("Error: GEMINI_API_KEY not set in .env file")
         sys.exit(1)
     model = os.getenv("LLM_MODEL")
 
     genai.configure(api_key=api_key)
-    model_name = os.getenv("LLM_MODEL", "gemini-2.5-pro")
+    model_name = os.getenv("LLM_MODEL", "gemini-3-flash-preview")
     model = genai.GenerativeModel(model_name)
 
     response = model.generate_content(
@@ -60,11 +61,11 @@ def build_wiki_context() -> str:
     if OVERVIEW_FILE.exists():
         parts.append(f"## 30_wiki/overview.md\n{read_file(OVERVIEW_FILE)}")
     # Include a few recent source pages for contradiction checking
-    sources_dir.exists():
-        if sources_dir.exists():
-            recent = sorted(sources_dir.glob("*.md"), key=lambda p: p.stat().st_mtime, reverse=True)[:5]
-            for p in recent:
-                parts.append(f"## {p.relative_to(REPO_ROOT)}\n{p.read_text()}")
+    sources_dir = WIKI_DIR / "sources"
+    if sources_dir.exists():
+        recent = sorted(sources_dir.glob("*.md"), key=lambda p: p.stat().st_mtime, reverse=True)[:5]
+        for p in recent:
+            parts.append(f"## {p.relative_to(REPO_ROOT)}\n{p.read_text()}")
     return "\n\n---\n\n".join(parts)
 
 def parse_json_from_response(text:str) -> dict:
@@ -277,12 +278,12 @@ def ingest(source_path:str) -> None:
         
     # Write source page
     subdir = "papers" if note_type == "paper" else "notes"
-    write_file(WIKI_DIR / "sources" / subdir / f"{slug}.md", data["source_page"])
+    write_file(WIKI_DIR / "sources" / subdir / f"{data['slug']}.md", data["source_page"])
     
     
     # Write entity pages
     for page in data.get("entity_pages", []):
-        write_file(WIKI_DIR / page["path", page["content"]])
+        write_file(WIKI_DIR / page["path"], page["content"])
         
     # Writre concept pages
     for page in data.get("concept_pages", []):
@@ -307,7 +308,7 @@ def ingest(source_path:str) -> None:
             print(f"     - {c}")
 
     # --- Post-ingest validation ---
-    created_pages = [f"sources/{slug}.md"]
+    created_pages = [f"sources/{data['slug']}.md"]
     for page in data.get("entity_pages", []):
         created_pages.append(page["path"])
     for page in data.get("concept_pages", []):
@@ -324,27 +325,32 @@ def ingest(source_path:str) -> None:
     print(f"{'='*50}")
     print(f"  Created : {len(created_pages)} pages")
     for p in created_pages:
-        print(f"           + wiki/{p}")
+        print(f"           + 30_wiki/{p}")
     print(f"  Updated : {len(updated_pages)} pages")
     for p in updated_pages:
-        print(f"           ~ wiki/{p}")
+        print(f"           ~ 30_wiki/{p}")
     if contradictions:
         print(f"  Warnings: {len(contradictions)} contradiction(s)")
     if validation["broken_links"]:
         print(f"  ⚠️  Broken links: {len(validation['broken_links'])}")
         for page, link in validation["broken_links"][:10]:
-            print(f"           wiki/{page} → [[{link}]]")
+            print(f"           30_wiki/{page} → [[{link}]]")
         if len(validation["broken_links"]) > 10:
             print(f"           ... and {len(validation['broken_links']) - 10} more")
     if validation["unindexed"]:
         print(f"  ⚠️  Not in index.md: {len(validation['unindexed'])}")
         for p in validation["unindexed"][:10]:
-            print(f"           wiki/{p}")
+            print(f"           30_wiki/{p}")
         if len(validation["unindexed"]) > 10:
             print(f"           ... and {len(validation['unindexed']) - 10} more")
     if not validation["broken_links"] and not validation["unindexed"]:
         print("  ✓ Validation passed — no broken links, all pages indexed")
     print()
+
+    update_status(
+        action=f"ingest | {data['title']}",
+        details=f"Created {len(created_pages)} pages. Contradictions: {len(contradictions)}"
+    )
     
 def update_status(action: str, details: str):
     """Write a status file so Gemini CLI knows the current wiki state."""
@@ -388,7 +394,7 @@ if __name__ == "__main__":
         if result["broken_links"]:
             print(f"Broken wikilinks: {len(result['broken_links'])}")
             for page, link in result["broken_links"][:20]:
-                print(f"  wiki/{page} → [[{link}]]")
+                print(f"  30_wiki/{page} → [[{link}]]")
             if len(result["broken_links"]) > 20:
                 print(f"  ... and {len(result['broken_links']) - 20} more")
         else:
@@ -405,7 +411,7 @@ if __name__ == "__main__":
         if unindexed_all:
             print(f"Pages not in index.md: {len(unindexed_all)}")
             for up in unindexed_all[:20]:
-                print(f"  wiki/{up}")
+                print(f"  30_wiki/{up}")
             if len(unindexed_all) > 20:
                 print(f"  ... and {len(unindexed_all) - 20} more")
         else:
@@ -452,17 +458,8 @@ if __name__ == "__main__":
     for p in unique_paths:
         ingest(str(p))
         
-    update_status(
-        action=f"ingest | {data['title']}",
-        details=f"Created {len(created_pages)} pages. Contradictions: {len(contradictions)}"
-    )
-    
     # Run gemini
-    parser.add_argument("--handoff", action="store_true", 
-                        help="Open Gemini CLI after completing")
-    args = parser.parse_args()
-
-    if args.handoff:
+    if "--handoff" in sys.argv:
         import subprocess
         print("\nHanding off to Gemini CLI...")
         subprocess.run(["gemini"], cwd=REPO_ROOT)

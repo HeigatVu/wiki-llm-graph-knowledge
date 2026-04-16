@@ -8,10 +8,11 @@ except ImportError:
     print("Error: litellm not installed. Run: pip install litellm")
     sys.exit(1)
 
-# Ensure tools can be imported
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from tools.lint import find_missing_entities, all_wiki_pages
+# Ensure the tools directory is in the path to allow imports
+sys.path.insert(0, str(Path(__file__).parent))
+import lint
+find_missing_entities = lint.find_missing_entities
+all_wiki_pages = lint.all_wiki_pages
 
 REPO_ROOT = Path(__file__).parent.parent
 WIKI_DIR = REPO_ROOT / "30_wiki"
@@ -20,7 +21,7 @@ ENTITIES_DIR = WIKI_DIR / "entities"
 def call_llm(prompt: str, max_tokens: int = 1500) -> str:
     # Use litellm standard environment variables
     # e.g., GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY
-    model = os.getenv("LLM_MODEL")
+    model = os.getenv("LLM_MODEL", "gemini-3-flash-preview")
     
     response = completion(
         model=model,

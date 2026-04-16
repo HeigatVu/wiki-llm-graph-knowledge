@@ -24,19 +24,19 @@ def read_file(path: Path) -> str:
 def call_llm(prompt:str, max_tokens:int=8192) -> str:
     """Call LLM with prompt."""
     try:
-        from google.generativeai import genai
+        import google.generativeai as genai
     except ImportError:
         print("Error: google-generativeai not installed. Run: pip install google-generativeai")
         sys.exit(1)
         
-    api_key = os.getenv("GOOGLE_API_KEY")
+    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        print("Error: GOOGLE_API_KEY not set in .env file")
+        print("Error: GEMINI_API_KEY not set in .env file")
         sys.exit(1)
     model = os.getenv("LLM_MODEL")
 
     genai.configure(api_key=api_key)
-    model_name = os.getenv("LLM_MODEL", "gemini-2.5-pro")
+    model_name = os.getenv("LLM_MODEL", "gemini-3-flash-preview")
     model = genai.GenerativeModel(model_name)
 
     response = model.generate_content(
@@ -322,7 +322,7 @@ def run_lint():
 
             Be specific — name the exact pages and claims involved.
             """
-    semantic_report = call_llm(prompt, "LLM_MODEL", "claude-3-5-sonnet-latest", max_tokens=3000)
+    semantic_report = call_llm(prompt, max_tokens=3000)
 
     # Compose full report
     report_lines = [
@@ -447,11 +447,7 @@ if __name__ == "__main__":
     append_log(f"## [{today}] lint | Wiki health check\n\nRan lint. See lint-report.md for details.")
     
     # Run gemini
-    parser.add_argument("--handoff", action="store_true", 
-                        help="Open Gemini CLI after completing")
-    args = parser.parse_args()
-
-    if args.handoff:
+    if "--handoff" in sys.argv:
         import subprocess
         print("\nHanding off to Gemini CLI...")
         subprocess.run(["gemini"], cwd=REPO_ROOT)

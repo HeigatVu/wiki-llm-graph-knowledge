@@ -1,18 +1,3 @@
-#!/usr/bin/env python3
-"""
-Single entry point for the wiki pipeline.
-
-Usage:
-    python run.py ingest raw/papers/my_notes/paper_note.md
-    python run.py ingest raw/my_knowledge_notes/
-    python run.py query "what do I know about transformers?"
-    python run.py lint
-    python run.py lint --save
-    python run.py graph
-    python run.py refresh
-    python run.py heal
-"""
-
 import sys
 import subprocess
 from pathlib import Path
@@ -28,6 +13,15 @@ TOOL_MAP = {
     "heal":    "1_tools/heal.py",
 }
 
+# Manually load .env since some environments don't auto-load it
+env_path = REPO_ROOT / ".env"
+if env_path.exists():
+    import os
+    for line in env_path.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            key, val = line.split("=", 1)
+            os.environ[key.strip()] = val.strip().strip("'\"")
 
 def main():
     if len(sys.argv) < 2:
