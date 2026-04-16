@@ -1,12 +1,64 @@
 {
   "recentFiles": [
     {
-      "basename": "Default Property Template",
-      "path": "10_System--stop/Templates/Default Property Template.md"
+      "basename": "README",
+      "path": "README.md"
+    },
+    {
+      "basename": "1_Operational-amplifiers (OP-AMP)",
+      "path": "20_raw/10_notes/20.02_Signal_Processing/2_hardware-biosignal-processing/1_Operational-amplifiers (OP-AMP).md"
+    },
+    {
+      "basename": "Robin2021-using digital speech assessments to detect early signs of cognitive impairment",
+      "path": "20_raw/20_papers/20.2_notes/alzheimer/Robin2021-using digital speech assessments to detect early signs of cognitive impairment.md"
+    },
+    {
+      "basename": "Pahar2025 - cognospeak",
+      "path": "20_raw/20_papers/20.2_notes/alzheimer/Pahar2025 - cognospeak.md"
+    },
+    {
+      "basename": "1_Total-signal-processing",
+      "path": "20_raw/10_notes/20.02_Signal_Processing/1_Total-signal-processing.md"
+    },
+    {
+      "basename": "2_Total-hardware-biosignal-processing",
+      "path": "20_raw/10_notes/20.02_Signal_Processing/2_Total-hardware-biosignal-processing.md"
+    },
+    {
+      "basename": "Adolfo2025-Toolkit to Examine Lifelike Language v2 Optimizing Speech Biomarkers of Neurodegeneration",
+      "path": "20_raw/20_papers/20.2_notes/alzheimer/Adolfo2025-Toolkit to Examine Lifelike Language v2 Optimizing Speech Biomarkers of Neurodegeneration.md"
+    },
+    {
+      "basename": "Adolfo2024-toolkit to examine lifelike language(TELL)",
+      "path": "20_raw/20_papers/20.2_notes/alzheimer/Adolfo2024-toolkit to examine lifelike language(TELL).md"
+    },
+    {
+      "basename": "Alty2024-development of a smartphone screening test for precilical ad and validation across the dementia continuum",
+      "path": "20_raw/20_papers/20.2_notes/alzheimer/Alty2024-development of a smartphone screening test for precilical ad and validation across the dementia continuum.md"
+    },
+    {
+      "basename": "robin2021-using digital speech assessments to detect early signs of cognitive impairment",
+      "path": "20_raw/20_papers/20.3_pdf/alzheimer/App/robin2021-using digital speech assessments to detect early signs of cognitive impairment.pdf"
+    },
+    {
+      "basename": "Pahar2025 - cognospeak",
+      "path": "20_raw/20_papers/20.3_pdf/alzheimer/App/Pahar2025 - cognospeak.pdf"
+    },
+    {
+      "basename": "alty2024-development of a smartphone screening test for precilical ad and validation across the dementia continuum",
+      "path": "20_raw/20_papers/20.3_pdf/alzheimer/App/alty2024-development of a smartphone screening test for precilical ad and validation across the dementia continuum.pdf"
+    },
+    {
+      "basename": "Adolft2025-supplementary-tell-v2",
+      "path": "20_raw/20_papers/20.3_pdf/alzheimer/App/Adolft2025-supplementary-tell-v2.pdf"
     },
     {
       "basename": "Paper Summary Template",
-      "path": "10_System--stop/Templates/Paper Summary Template.md"
+      "path": "10_System/Templates/Paper Summary Template.md"
+    },
+    {
+      "basename": "Default Property Template",
+      "path": "10_System/Templates/Default Property Template.md"
     },
     {
       "basename": "Benjamens2020-the state of AI based FDA approved medical devices and algorithms",
@@ -14,7 +66,7 @@
     },
     {
       "basename": "Daily Note Template",
-      "path": "10_System--stop/Templates/Daily Note Template.md"
+      "path": "10_System/Templates/Daily Note Template.md"
     },
     {
       "basename": "s44400-025-00040-0",

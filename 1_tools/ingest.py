@@ -346,6 +346,40 @@ def ingest(source_path:str) -> None:
         print("  ✓ Validation passed — no broken links, all pages indexed")
     print()
     
+def update_status(action: str, details: str):
+    """Write a status file so Gemini CLI knows the current wiki state."""
+    status_path = REPO_ROOT / "WIKI_STATUS.md"
+    today = date.today().isoformat()
+    
+    index_content = read_file(INDEX_FILE)
+    
+    # Count pages by type
+    papers = list((WIKI_DIR / "sources" / "papers").glob("*.md")) if (WIKI_DIR / "sources" / "papers").exists() else []
+    notes = list((WIKI_DIR / "sources" / "notes").glob("*.md")) if (WIKI_DIR / "sources" / "notes").exists() else []
+    entities = list((WIKI_DIR / "entities").glob("*.md")) if (WIKI_DIR / "entities").exists() else []
+    concepts = list((WIKI_DIR / "concepts").glob("*.md")) if (WIKI_DIR / "concepts").exists() else []
+
+    content = f"""# Wiki Status
+Last updated: {today}
+Last action: {action}
+
+## Stats
+- Papers: {len(papers)}
+- Knowledge notes: {len(notes)}
+- Entities: {len(entities)}
+- Concepts: {len(concepts)}
+
+## Last Action Details
+{details}
+
+## Suggested Next Steps
+- Run `/wiki-query` to explore what was just added
+- Run `/wiki-lint` to check for gaps or contradictions
+- Run `/wiki-graph` to rebuild the knowledge graph
+"""
+    status_path.write_text(content, encoding="utf-8")    
+
+
 if __name__ == "__main__":
     # Handle --validate-only flag
     if len(sys.argv) == 2 and sys.argv[1] == "--validate-only":
@@ -417,3 +451,18 @@ if __name__ == "__main__":
         
     for p in unique_paths:
         ingest(str(p))
+        
+    update_status(
+        action=f"ingest | {data['title']}",
+        details=f"Created {len(created_pages)} pages. Contradictions: {len(contradictions)}"
+    )
+    
+    # Run gemini
+    parser.add_argument("--handoff", action="store_true", 
+                        help="Open Gemini CLI after completing")
+    args = parser.parse_args()
+
+    if args.handoff:
+        import subprocess
+        print("\nHanding off to Gemini CLI...")
+        subprocess.run(["gemini"], cwd=REPO_ROOT)

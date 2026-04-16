@@ -1,5 +1,5 @@
 # First step to build wiki
-"""
+```
 Ingest a source document into the LLM Wiki.
 
 Usage:
@@ -15,10 +15,10 @@ The LLM reads the source, extracts knowledge, and updates the wiki:
   - Appends to wiki/log.md
   - Flags contradictions
   - Runs post-ingest validation (broken links, index coverage)
-"""
+```
 
 # Second step to build
-"""
+```
 Query the LLM Wiki.
 
 Usage:
@@ -29,10 +29,10 @@ Usage:
 Flags:
     --save              Save the answer back into the wiki (prompts for filename)
     --save <path>       Save to a specific wiki path
-"""
+```
 
 # Third step to build
-"""
+```
 Lint the LLM Wiki for health issues.
 
 Usage:
@@ -45,10 +45,10 @@ Checks:
   - Missing entity pages (entities mentioned in 3+ pages but no page)
   - Contradictions between pages
   - Data gaps and suggested new sources
-"""
+```
 
 # Fourth step to build
-"""
+```
 Build the knowledge graph from the wiki.
 
 Usage:
@@ -64,10 +64,10 @@ Edge types:
     EXTRACTED   — explicit [[wikilink]] in a page
     INFERRED    — Claude-detected implicit relationship
     AMBIGUOUS   — low-confidence inferred relationship
-"""
+```
 
 # Fifth step to build
-"""
+```
 Graph Self-Healing Tool
 
 Automatically retrieves "Missing Entity Pages" from the wiki and generates 
@@ -75,11 +75,11 @@ comprehensive definition pages for them using the LLM.
 It resolves broken entity links by scanning existing contexts where the entity is referenced.
 
 Usage:
-    python tools/heal.py
-"""
+    python tools/heal.**py**
+```
 
 # Finally step to build
-"""
+```
 Refresh stale source pages by re-ingesting from raw documents.
 
 Usage:
@@ -89,4 +89,19 @@ Usage:
 
 Compares raw document hashes against stored hashes to detect changes.
 Re-ingests changed documents to update wiki/sources/ pages with accurate facts.
-"""
+```
+
+# Overall run
+```
+Single entry point for the wiki pipeline.
+
+Usage:
+    python run.py ingest raw/papers/my-paper.md
+    python run.py ingest raw/my_knowledge_notes/   # bulk ingest a folder
+    python run.py query "what do I know about transformers?"
+    python run.py lint
+    python run.py graph
+    python run.py refresh
+    python run.py heal
+    python run.py chat    # skip pipeline, open Gemini CLI directly
+```

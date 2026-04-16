@@ -2,6 +2,16 @@
 
 This wiki is maintained entirely by Gemini CLI. No API key or Python scripts needed — just open this repo with `gemini` and talk to it.
 
+## Startup Behavior
+
+When the user opens this repo, ALWAYS read these files first before doing anything:
+1. `WIKI_STATUS.md` — shows what the Python pipeline last did
+2. `30_wiki/index.md` — current wiki contents
+3. `30_wiki/overview.md` — living synthesis
+
+Then greet the user with a one-line summary of the current wiki state.
+Example: "Wiki has 12 papers, 8 notes, 34 concepts. Last action: ingest | Attention Is All You Need."
+
 ## How to Use
 
 Describe what you want in plain English:

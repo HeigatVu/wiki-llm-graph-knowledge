@@ -86,3 +86,13 @@ Write a comprehensive paragraph defining what `{entity}` means in the context of
 
 if __name__ == "__main__":
     heal_missing_entities()
+    
+    # Run gemini
+    parser.add_argument("--handoff", action="store_true", 
+                        help="Open Gemini CLI after completing")
+    args = parser.parse_args()
+
+    if args.handoff:
+        import subprocess
+        print("\nHanding off to Gemini CLI...")
+        subprocess.run(["gemini"], cwd=REPO_ROOT)

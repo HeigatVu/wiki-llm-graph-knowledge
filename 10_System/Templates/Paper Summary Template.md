@@ -14,9 +14,7 @@ One sentence summary of what this paper adds to the field.
 ##  Results & Conclusions
 - 
 
-##  Personal Critique & Ideas
+##  Personal Critique & Ideas for future improvement
 - 
 
-##  Related Notes (optional)
-- [[Note 1]]
-- [[Note 2]]
+##  Related Notes (optional) `using [[]] to write note
