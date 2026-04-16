@@ -10,7 +10,7 @@
           {
             "id": "3ad2bdb31d334b8f",
             "type": "tabs",
-            "dimension": 44.94274809160305,
+            "dimension": 80.91603053435115,
             "children": [
               {
                 "id": "7310dd9b79c6cb59",
@@ -27,7 +27,7 @@
           {
             "id": "51d29f2c07d37a51",
             "type": "tabs",
-            "dimension": 55.05725190839694,
+            "dimension": 19.083969465648856,
             "children": [
               {
                 "id": "deb1269aec152fe7",
@@ -67,7 +67,7 @@
                     }
                   },
                   "icon": "terminal",
-                  "title": "Terminal: heigatvu@fedora:~/Obsidian/1_original-source"
+                  "title": "Terminal: heigatvu@fedora:~/Obsidian/my-knowledge"
                 }
               }
             ]

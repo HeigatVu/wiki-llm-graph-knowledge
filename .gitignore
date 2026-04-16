@@ -4,6 +4,8 @@
 .trash/
 .venv/
 2_graph/
+.env
+.obsidian/
 
 # Keep system configuration, templates, and CLI settings
 !10_System/
