@@ -4,7 +4,11 @@
 .trash/
 .venv/
 2_graph/
-.env.bk
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
 .obsidian/
 20_raw/
 30_wiki/
