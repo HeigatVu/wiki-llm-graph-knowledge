@@ -1,17 +1,20 @@
 # Wiki Status
 Last updated: 2026-04-17
-Last action: ingest | CognoSpeak: an automatic, remote assessment of early cognitive decline in real-world conversational speech
+Last action: lint | Wiki cleanup and normalization
 
 ## Stats
-- Papers: 4
+- Papers: 15
 - Knowledge notes: 0
-- Entities: 4
-- Concepts: 8
+- Entities: 77
+- Concepts: 32
 
 ## Last Action Details
-Created 5 pages. Contradictions: 0
+- Normalized all entity/concept names to TitleCase.
+- Merged duplicate files and consolidated redundant topics.
+- Materialized 44 missing hub pages (stubs) to resolve broken links.
+- Fixed 450+ internal wikilinks across 100+ files.
+- Rebuilt index.md to remove duplicate entries.
 
 ## Suggested Next Steps
-- Run `/wiki-query` to explore what was just added
-- Run `/wiki-lint` to check for gaps or contradictions
-- Run `/wiki-graph` to rebuild the knowledge graph
+- Run `/wiki-query` to explore the now-connected knowledge base.
+- Run `/wiki-graph` to visualize the new structure.

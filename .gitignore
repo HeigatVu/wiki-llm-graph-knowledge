@@ -4,7 +4,7 @@
 .trash/
 .venv/
 2_graph/
-.env.pk
+.env.bk
 .obsidian/
 20_raw/
 30_wiki/
