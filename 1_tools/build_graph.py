@@ -1212,6 +1212,14 @@ def build_graph(infer: bool = True, open_browser: bool = False, clean: bool = Fa
                 print(f"  saved: {report_path.relative_to(REPO_ROOT)}")
             append_log(f"## [{today}] report | Graph health report generated\n\n{len(nodes)} nodes analyzed.")
 
+    if report:
+      from gap_analysis import SemanticGapAnalyzer
+      gap_analyzer = SemanticGapAnalyzer(use_graph_json=True)
+      gap_report = gap_analyzer.run()
+      print(gap_report)
+      if save:
+          (GRAPH_DIR / "gap-report.md").write_text(gap_report, encoding="utf-8")
+
     if open_browser:
         webbrowser.open(f"file://{GRAPH_HTML.resolve()}")
 

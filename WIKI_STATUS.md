@@ -1,20 +1,17 @@
 # Wiki Status
 Last updated: 2026-04-17
-Last action: lint | Wiki cleanup and normalization
+Last action: ingest | Detection of Cognitive Impairment And Alzheimer’s Disease Using a Speech and Language Based Protocol
 
 ## Stats
-- Papers: 15
+- Papers: 16
 - Knowledge notes: 0
-- Entities: 77
-- Concepts: 32
+- Entities: 31
+- Concepts: 24
 
 ## Last Action Details
-- Normalized all entity/concept names to TitleCase.
-- Merged duplicate files and consolidated redundant topics.
-- Materialized 44 missing hub pages (stubs) to resolve broken links.
-- Fixed 450+ internal wikilinks across 100+ files.
-- Rebuilt index.md to remove duplicate entries.
+Created 4 pages. Contradictions: 0
 
 ## Suggested Next Steps
-- Run `/wiki-query` to explore the now-connected knowledge base.
-- Run `/wiki-graph` to visualize the new structure.
+- Run `/wiki-query` to explore what was just added
+- Run `/wiki-lint` to check for gaps or contradictions
+- Run `/wiki-graph` to rebuild the knowledge graph

@@ -78,6 +78,16 @@ Triggered by: *"ingest <file>"*
 8. Append to `30_wiki/log.md`: `## [YYYY-MM-DD] ingest | <Title>`
 9. **Post-ingest validation** — check for broken `[[wikilinks]]`, verify all new pages are in `index.md`, print a change summary
 
+## Slash Command Shortcuts
+- `/wiki-ingest <file>` → run Ingest Workflow
+- `/wiki-query <question>` → run Query Workflow  
+- `/wiki-lint` → run Lint Workflow
+- `/wiki-graph` → run Graph Workflow
+- `/wiki-gap` → run Gap Analysis
+- `/wiki-heal` → run Heal Workflow
+- `/wiki-refresh` → run Refresh Workflow
+
+
 ### Source Page Format
 
 ```markdown

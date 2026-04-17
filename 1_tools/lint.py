@@ -303,25 +303,21 @@ def run_lint():
         rel = p.relative_to(REPO_ROOT)
         pages_context += f"\n\n### {rel}\n{read_file(p)[:1500]}"  # truncate long pages
 
-    print("  running semantic lint via API...")
-    prompt = f"""You are linting an LLM Wiki. Review the pages below and identify:
-            1. Contradictions between pages (claims that conflict)
-            2. Stale content (summaries that newer sources have superseded)
-            3. Data gaps (important questions the wiki can't answer — suggest specific sources to find)
-            4. Concepts mentioned but lacking depth
+    print("  running semantic gap analysis (local algorithms)...")
+    try:
+        from gap_analysis import SemanticGapAnalyzer
+        analyzer = SemanticGapAnalyzer(use_graph_json=True)
+        semantic_report = analyzer.run()
+    except Exception as e:
+        semantic_report = f"## Semantic Gap Analysis\n\nFailed: {e}\n"
 
-            Wiki pages (sample of {len(sample)} pages):
-            {pages_context}
-
-            Return a markdown lint report with these sections:
-            ## Contradictions
-            ## Stale Content
-            ## Data Gaps & Suggested Sources
-            ## Concepts Needing More Depth
-
-            Be specific — name the exact pages and claims involved.
-            """
-    semantic_report = call_llm(prompt, max_tokens=3000)
+    print("  running contradiction check via API...")
+    # keep a short LLM prompt for contradictions only (not gaps)
+    prompt = f"""Find ONLY direct contradictions and stale content across these wiki pages. 
+    Do not report gaps — those are handled separately.
+    Pages: {pages_context}
+    Return: ## Contradictions\n## Stale Content"""
+    contradiction_report = call_llm(prompt, max_tokens=1500)
 
     # Compose full report
     report_lines = [
@@ -420,6 +416,8 @@ def run_lint():
     report_lines.append("---")
     report_lines.append("")
     report_lines.append(semantic_report)
+    report_lines.append("\n---\n")
+    report_lines.append(contradiction_report)
 
     report = "\n".join(report_lines)
     print("\n" + report)

@@ -15,6 +15,7 @@ TOOL_MAP = {
     "graph":   "1_tools/build_graph.py",
     "refresh": "1_tools/refresh.py",
     "heal":    "1_tools/heal.py",
+    "gap":     "1_tools/gap_analysis.py",
 }
 
 def main():
