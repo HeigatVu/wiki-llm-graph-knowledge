@@ -14,6 +14,24 @@ INDEX_FILE = WIKI_DIR / "index.md"
 OVERVIEW_FILE = WIKI_DIR / "overview.md"
 SCHEMA_FILE = WIKI_DIR / "GEMINI.md"
 
+def safe_wiki_path(relative_path: str) -> Path:
+    """Resolve a wiki-relative path and ensure it stays inside WIKI_DIR.
+
+    Rejects absolute paths and traversal (e.g. '../etc/passwd') that would
+    escape the wiki directory. Used to sanitize user-supplied --save paths.
+    """
+    rel = Path(relative_path)
+    if rel.is_absolute():
+        raise ValueError(f"Refusing absolute path inside wiki: {relative_path!r}")
+    candidate = (WIKI_DIR / rel).resolve()
+    wiki_root = WIKI_DIR.resolve()
+    if candidate != wiki_root and wiki_root not in candidate.parents:
+        raise ValueError(
+            f"Refusing path that escapes wiki directory: {relative_path!r}"
+        )
+    return candidate
+
+
 def read_file(path:Path) -> str:
     """Read file content safely."""
     return path.read_text(encoding="utf-8") if path.exists() else ""
@@ -166,13 +184,25 @@ def query(question: str, save_path: str | None = None):
     if save_path is not None:
         if save_path == "":
             # Prompt for filename
-            slug = input("\nSave as (slug, e.g. 'my-analysis'): ").strip()
-            if not slug:
+            slug_input = input("\nSave as (slug, e.g. 'my-analysis'): ").strip()
+            if not slug_input:
                 print("Skipping save.")
                 return
-            save_path = f"syntheses/{slug}.md"
+            # Sanitize the slug to a single filename segment
+            slug_clean = re.sub(r"[^A-Za-z0-9_\-]", "-", slug_input).strip("-._")[:100]
+            if not slug_clean:
+                print("Invalid slug — skipping save.")
+                return
+            save_path = f"syntheses/{slug_clean}.md"
 
-        full_save_path = WIKI_DIR / save_path
+        try:
+            full_save_path = safe_wiki_path(save_path)
+        except ValueError as e:
+            print(f"Error: unsafe --save path: {e}")
+            sys.exit(1)
+        if full_save_path.suffix != ".md":
+            print("Error: --save path must end with .md")
+            sys.exit(1)
         frontmatter = f"""---
                         title: "{question[:80]}"
                         type: synthesis

@@ -61,6 +61,39 @@ def call_llm(prompt:str, max_tokens:int=8192) -> str:
 
     return response.text
 
+def safe_wiki_path(relative_path: str) -> Path:
+    """Resolve a wiki-relative path and ensure it stays inside WIKI_DIR.
+
+    Rejects absolute paths and any traversal (e.g. '../etc/passwd') that
+    would escape the wiki directory. This is important because some paths
+    come from LLM output (e.g. entity/concept page paths, source slugs) and
+    could otherwise be abused via prompt injection in source documents to
+    write arbitrary files.
+    """
+    rel = Path(relative_path)
+    if rel.is_absolute():
+        raise ValueError(f"Refusing absolute path inside wiki: {relative_path!r}")
+    candidate = (WIKI_DIR / rel).resolve()
+    wiki_root = WIKI_DIR.resolve()
+    if candidate != wiki_root and wiki_root not in candidate.parents:
+        raise ValueError(
+            f"Refusing path that escapes wiki directory: {relative_path!r}"
+        )
+    return candidate
+
+
+def safe_slug(slug: str) -> str:
+    """Sanitize an LLM-provided slug to a safe single-segment filename stem."""
+    if not isinstance(slug, str) or not slug.strip():
+        raise ValueError("Empty or non-string slug")
+    # Keep only lowercase letters, digits, dashes and underscores
+    cleaned = re.sub(r"[^A-Za-z0-9_\-]", "-", slug.strip()).strip("-._")
+    if not cleaned or cleaned in (".", ".."):
+        raise ValueError(f"Unsafe slug: {slug!r}")
+    # Cap length to avoid pathological filenames
+    return cleaned[:100]
+
+
 def write_file(path:Path, content:str) -> None:
     """Write file content safely."""
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -330,18 +363,50 @@ def ingest(source_path:str) -> None:
         Path("/tmp/ingest_debug.txt").write_text(raw)
         sys.exit(1)
         
-    # Write source page
+    # Write source page — sanitize LLM-provided slug and ensure it stays in wiki
     subdir = "papers" if note_type == "paper" else "notes"
-    write_file(WIKI_DIR / "sources" / subdir / f"{data['slug']}.md", data["source_page"])
-    
-    
-    # Write entity pages
+    try:
+        slug = safe_slug(data["slug"])
+    except ValueError as e:
+        print(f"Error: LLM returned unsafe slug: {e}")
+        sys.exit(1)
+    data["slug"] = slug  # keep downstream consumers in sync
+    source_page_path = safe_wiki_path(f"sources/{subdir}/{slug}.md")
+    write_file(source_page_path, data["source_page"])
+
+
+    # Write entity pages — validate LLM-provided paths to block traversal.
+    # Only allow paths under entities/ or concepts/ to avoid overwriting
+    # index.md, log.md, or arbitrary files elsewhere in the repo.
+    def _safe_sub_path(raw_path: str, allowed_prefix: str) -> Path | None:
+        if not isinstance(raw_path, str) or not raw_path.strip():
+            return None
+        try:
+            resolved = safe_wiki_path(raw_path)
+        except ValueError as exc:
+            print(f"  [warn] skipping unsafe page path {raw_path!r}: {exc}")
+            return None
+        allowed_root = (WIKI_DIR / allowed_prefix).resolve()
+        if allowed_root not in resolved.parents:
+            print(
+                f"  [warn] skipping page path outside {allowed_prefix}/: {raw_path!r}"
+            )
+            return None
+        if resolved.suffix != ".md":
+            print(f"  [warn] skipping non-markdown page path: {raw_path!r}")
+            return None
+        return resolved
+
     for page in data.get("entity_pages", []):
-        write_file(WIKI_DIR / page["path"], page["content"])
-        
-    # Writre concept pages
+        target = _safe_sub_path(page.get("path", ""), "entities")
+        if target is not None:
+            write_file(target, page.get("content", ""))
+
+    # Write concept pages
     for page in data.get("concept_pages", []):
-        write_file(WIKI_DIR / page["path"], page["content"])
+        target = _safe_sub_path(page.get("path", ""), "concepts")
+        if target is not None:
+            write_file(target, page.get("content", ""))
         
     # Update overview
     if data.get("overview_update"):

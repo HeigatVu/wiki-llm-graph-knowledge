@@ -14,6 +14,20 @@ SOURCES_DIR = WIKI_DIR / "sources"
 REFRESH_CACHE = REPO_ROOT / "2_graph" / ".refresh_cache.json"
 MANIFEST_FILE = REPO_ROOT / "2_graph" / ".ingest_manifest.json"
 
+def safe_wiki_path(relative_path: str) -> Path:
+    """Resolve a wiki-relative path and ensure it stays inside WIKI_DIR."""
+    rel = Path(relative_path)
+    if rel.is_absolute():
+        raise ValueError(f"Refusing absolute path inside wiki: {relative_path!r}")
+    candidate = (WIKI_DIR / rel).resolve()
+    wiki_root = WIKI_DIR.resolve()
+    if candidate != wiki_root and wiki_root not in candidate.parents:
+        raise ValueError(
+            f"Refusing path that escapes wiki directory: {relative_path!r}"
+        )
+    return candidate
+
+
 def load_manifest() -> dict:
     """Load the ingest manifest."""
     if MANIFEST_FILE.exists():
@@ -138,10 +152,15 @@ def main():
     args = parser.parse_args()
 
     if args.page:
-        # Refresh a single specific page
-        wiki_page = WIKI_DIR / args.page
-        if not wiki_page.suffix:
-            wiki_page = wiki_page.with_suffix(".md")
+        # Refresh a single specific page — validate the path stays inside the wiki
+        page_arg = args.page
+        if not Path(page_arg).suffix:
+            page_arg = page_arg + ".md"
+        try:
+            wiki_page = safe_wiki_path(page_arg)
+        except ValueError as e:
+            print(f"Error: unsafe --page path: {e}")
+            sys.exit(1)
         if not wiki_page.exists():
             print(f"Page not found: {wiki_page}")
             sys.exit(1)
