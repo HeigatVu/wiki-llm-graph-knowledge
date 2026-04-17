@@ -94,10 +94,14 @@ uv run main.py lint --save
 
 ## Graph
 ```
-# Build graph.json and graph.html from all wikilinks
-uv run main.py graph
+Build the knowledge graph from the wiki.
 
-# Build and open graph.html in browser
+uv run main.py graph               # full rebuild with inference
+uv run main.py graph --no-infer    # skip semantic inference (faster)
+uv run main.py graph --open        # open graph.html after build
+uv run main.py graph --clean       # wipe checkpoint, re-infer everything
+uv run main.py graph --report      # also generate health report
+uv run main.py graph --save        # save report to 2_graph/graph-report.md
 uv run main.py graph --open
 ```
 **Run this after every batch ingest to keep the graph current. Graph data also unlocks deeper checks in lint.**

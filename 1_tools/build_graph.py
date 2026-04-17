@@ -47,19 +47,20 @@ def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
-def call_llm(prompt:str, max_tokens:int=8192) -> str:
+def call_llm(prompt: str, max_tokens: int = 8192) -> str:
     """Call LLM with prompt."""
     try:
         import google.generativeai as genai
     except ImportError:
         print("Error: google-generativeai not installed. Run: pip install google-generativeai")
+        import sys
         sys.exit(1)
-        
+
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         print("Error: GEMINI_API_KEY not set in .env file")
+        import sys
         sys.exit(1)
-    model = os.getenv("LLM_MODEL")
 
     genai.configure(api_key=api_key)
     model_name = os.getenv("LLM_MODEL", "gemini-3-flash-preview")
@@ -71,6 +72,7 @@ def call_llm(prompt:str, max_tokens:int=8192) -> str:
     )
 
     return response.text
+
 
 def sha256(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
@@ -290,7 +292,7 @@ Rules:
         page_edges = []
         valid_rels = []
         try:
-            raw = call_llm(prompt, "LLM_MODEL_FAST", "claude-3-5-haiku-latest", max_tokens=1024)
+            raw = call_llm(prompt, max_tokens=1024)
             raw = raw.strip()
 
             match = re.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", raw)
@@ -1002,7 +1004,6 @@ function applyFilters(query = searchInput.value, selectedNodeId = activeNodeId) 
         color: emphasized ? "#f2f3f8" : hidden ? "rgba(242,243,248,0.08)" : "rgba(242,243,248,0.2)",
       }},
       borderWidth: isActive ? 5 : 2,
-      size: isActive ? 18 : 12,
     }};
   }});
 
@@ -1044,13 +1045,22 @@ function applyFilters(query = searchInput.value, selectedNodeId = activeNodeId) 
 }}
 
 const container = document.getElementById("graph");
+
+// Adaptive physics based on graph size — larger graphs need more repulsion and longer springs
+const nodeCount = originalNodes.length;
+const gravConst = nodeCount > 80 ? -8000 : nodeCount > 30 ? -5000 : -2000;
+const springLen = nodeCount > 80 ? 250 : nodeCount > 30 ? 200 : 150;
+
 const network = new vis.Network(container, {{ nodes, edges }}, {{
   nodes: {{
     shape: "dot",
-    size: 10,
     font: {{ color: "#ddd", size: 12, strokeWidth: 3, strokeColor: "#111" }},
     borderWidth: 1.5,
-    scaling: {{ label: {{ drawThreshold: 9, maxVisible: 18 }} }},
+    scaling: {{
+      min: 8,
+      max: 40,
+      label: {{ enabled: true, min: 10, max: 20, drawThreshold: 6, maxVisible: 24 }},
+    }},
   }},
   edges: {{
     width: 0.8,
@@ -1060,10 +1070,16 @@ const network = new vis.Network(container, {{ nodes, edges }}, {{
     hoverWidth: 2,
   }},
   physics: {{
-    stabilization: {{ iterations: 200, updateInterval: 25 }},
-    barnesHut: {{ gravitationalConstant: -3000, springLength: 200, springConstant: 0.02, damping: 0.12 }},
+    stabilization: {{ iterations: 250, updateInterval: 25, fit: true }},
+    barnesHut: {{ gravitationalConstant: gravConst, springLength: springLen, springConstant: 0.02, damping: 0.15 }},
+    minVelocity: 0.75,
   }},
   interaction: {{ hover: true, tooltipDelay: 150, hideEdgesOnDrag: true, hideEdgesOnZoom: true }},
+}});
+
+// Auto-fit the graph to the viewport after physics settles
+network.once("stabilizationIterationsDone", function () {{
+  network.fit({{ animation: {{ duration: 400, easingFunction: "easeInOutQuad" }} }});
 }});
 
 function focusNode(nodeId) {{
@@ -1160,6 +1176,14 @@ def build_graph(infer: bool = True, open_browser: bool = False, clean: bool = Fa
         if comm_id >= 0:
             node["color"] = COMMUNITY_COLORS[comm_id % len(COMMUNITY_COLORS)]
         node["group"] = comm_id
+
+    # Compute degree-based node sizing (value) so vis.js can scale hub nodes larger
+    degree_map: dict[str, int] = {}
+    for e in edges:
+        degree_map[e["from"]] = degree_map.get(e["from"], 0) + 1
+        degree_map[e["to"]] = degree_map.get(e["to"], 0) + 1
+    for node in nodes:
+        node["value"] = degree_map.get(node["id"], 0) + 1  # +1 so isolated nodes are still visible
 
     # Save graph.json
     graph_data = {"nodes": nodes, "edges": edges, "built": today}
