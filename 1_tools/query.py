@@ -50,57 +50,38 @@ def call_llm(prompt:str, max_tokens:int=8192) -> str:
     return response.text
 
 def find_relevant_pages(question: str, index_content: str) -> list[Path]:
-    """Extract linked pages from index that seem relevant to the question.
-    Uses character-level matching for CJK compatibility."""
-    md_links = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', index_content)
-    question_lower = question.lower()
-    relevant = []
+    """Ask the LLM to identify relevant pages from the index."""
+    prompt = f"""Given this wiki index:
 
-    for title, href in md_links:
-        title_lower = title.lower()
-        # For CJK: check if any 2+ char substring of the title appears in question
-        has_cjk = any('\u4e00' <= ch <= '\u9fff' for ch in title)
-        if has_cjk:
-            # Sliding window: check if any 2-char CJK bigram from title exists in question
-            matched = any(
-                title_lower[j:j+2] in question_lower
-                for j in range(len(title_lower) - 1)
-                if any('\u4e00' <= c <= '\u9fff' for c in title_lower[j:j+2])
-            )
-        else:
-            # Latin: original word-based match (lowered threshold to >2)
-            matched = any(word in question_lower for word in title_lower.split() if len(word) > 2)
+            {index_content}
 
-        if matched:
-            p = WIKI_DIR / href
-            if p.exists() and p not in relevant:
-                relevant.append(p)
+            Which pages are most relevant to answering: "{question}"
 
-    # Also try graph-based expansion: find neighbors of matched pages
-    graph_json = REPO_ROOT / "graph" / "graph.json"
-    if graph_json.exists() and relevant:
-        try:
-            graph_data = json.loads(graph_json.read_text())
-            page_ids = {p.relative_to(WIKI_DIR).as_posix().replace('.md', '') for p in relevant}
-            neighbors = set()
-            for edge in graph_data.get('edges', []):
-                if edge.get('confidence', 0) >= 0.7:
-                    if edge['from'] in page_ids:
-                        neighbors.add(edge['to'])
-                    elif edge['to'] in page_ids:
-                        neighbors.add(edge['from'])
-            for nid in neighbors:
-                np = WIKI_DIR / f"{nid}.md"
-                if np.exists() and np not in relevant:
-                    relevant.append(np)
-        except (json.JSONDecodeError, KeyError):
-            pass
+            Guidelines:
+            - For questions about research, methodology, or what papers say → prefer pages under sources/papers/
+            - For questions about personal understanding or concepts → prefer pages under sources/notes/
+            - Always include overview.md if the question is broad or thematic
+
+            Return ONLY a JSON array of relative file paths exactly as listed in the index.
+            Examples: ["sources/papers/slug.md", "sources/notes/slug.md", "concepts/Bar.md"]
+            Maximum 10 pages.
+            """
+    raw = call_llm(prompt, max_tokens=512)
+    raw = raw.strip()
+    raw = re.sub(r"^```(?:json)?\s*", "", raw)
+    raw = re.sub(r"\s*```$", "", raw)
+    try:
+        paths = json.loads(raw)
+        relevant = [WIKI_DIR / p for p in paths if (WIKI_DIR / p).exists()]
+    except (json.JSONDecodeError, TypeError):
+        relevant = []
 
     # Always include overview
     overview = WIKI_DIR / "overview.md"
     if overview.exists() and overview not in relevant:
         relevant.insert(0, overview)
-    return relevant[:15]  # cap to avoid context overflow
+
+    return relevant[:15]
 
 def append_log(entry: str):
     existing = read_file(LOG_FILE)
@@ -136,7 +117,7 @@ def query(question: str, save_path: str | None = None):
             Examples: ["sources/papers/slug.md", "sources/notes/slug.md", "concepts/Bar.md"]
             Maximum 10 pages.
             """
-                raw = call_llm(prompt, "LLM_MODEL_FAST", "claude-3-5-haiku-latest", max_tokens=512)
+        raw = call_llm(prompt, max_tokens=512)
         raw = raw.strip()
         raw = re.sub(r"^```(?:json)?\s*", "", raw)
         raw = re.sub(r"\s*```$", "", raw)

@@ -13,6 +13,21 @@ LOG_FILE = WIKI_DIR / "log.md"
 INDEX_FILE = WIKI_DIR / "index.md"
 OVERVIEW_FILE = WIKI_DIR / "overview.md"
 SCHEMA_FILE = WIKI_DIR / "GEMINI.md"
+MANIFEST_FILE = REPO_ROOT / "2_graph" / ".ingest_manifest.json"
+
+def load_manifest() -> dict:
+    """Load the ingest manifest mapping source files to created wiki pages."""
+    if MANIFEST_FILE.exists():
+        try:
+            return json.loads(MANIFEST_FILE.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, IOError):
+            return {}
+    return {}
+
+def save_manifest(manifest: dict) -> None:
+    """Save the ingest manifest."""
+    MANIFEST_FILE.parent.mkdir(parents=True, exist_ok=True)
+    MANIFEST_FILE.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
 
 def sha256(text:str) -> str:
     """Compute SHA256 hash of text."""
@@ -34,10 +49,9 @@ def call_llm(prompt:str, max_tokens:int=8192) -> str:
     if not api_key:
         print("Error: GEMINI_API_KEY not set in .env file")
         sys.exit(1)
-    model = os.getenv("LLM_MODEL")
 
     genai.configure(api_key=api_key)
-    model_name = os.getenv("LLM_MODEL", "gemini-3-flash-preview")
+    model_name = os.getenv("LLM_MODEL", "gemini-3.1-flash-preview")
     model = genai.GenerativeModel(model_name)
 
     response = model.generate_content(
@@ -53,19 +67,69 @@ def write_file(path:Path, content:str) -> None:
     path.write_text(content, encoding="utf-8")
     print(f"Wrote: {path.relative_to(REPO_ROOT)}")
     
-def build_wiki_context() -> str:
-    """Build wiki context from index, overview, and recent sources."""
+def build_wiki_context(source_content: str) -> str:
+    """Build wiki context from index, overview, and topically relevant sources.
+    
+    Instead of pulling the 5 most recently modified pages (which are often
+    unrelated to the new source), we extract wikilinks already present in the
+    source content and pull those pages specifically. This keeps the context
+    window focused and avoids feeding the LLM irrelevant pages.
+    """
     parts = []
+
+    # Always include index and overview
     if INDEX_FILE.exists():
         parts.append(f"## 30_wiki/index.md\n{read_file(INDEX_FILE)}")
     if OVERVIEW_FILE.exists():
         parts.append(f"## 30_wiki/overview.md\n{read_file(OVERVIEW_FILE)}")
-    # Include a few recent source pages for contradiction checking
+
+    # Find pages explicitly linked in the source content
+    linked_names = re.findall(r'\[\[([^\]]+)\]\]', source_content)
+
+    # Also extract candidate names from the source frontmatter and headings
+    # so even un-wikilinked references get matched
+    heading_words = re.findall(r'^#{1,3}\s+(.+)$', source_content, re.MULTILINE)
+    frontmatter_match = re.match(r'^---\n(.*?)\n---', source_content, re.DOTALL)
+    frontmatter_text = frontmatter_match.group(1) if frontmatter_match else ""
+
+    # Build a lookup of all existing wiki pages by stem
     sources_dir = WIKI_DIR / "sources"
-    if sources_dir.exists():
-        recent = sorted(sources_dir.glob("*.md"), key=lambda p: p.stat().st_mtime, reverse=True)[:5]
-        for p in recent:
-            parts.append(f"## {p.relative_to(REPO_ROOT)}\n{p.read_text()}")
+    entities_dir = WIKI_DIR / "entities"
+    concepts_dir = WIKI_DIR / "concepts"
+
+    all_pages: dict[str, Path] = {}
+    for d in [sources_dir, entities_dir, concepts_dir]:
+        if d.exists():
+            for p in d.rglob("*.md"):
+                all_pages[p.stem.lower()] = p
+
+    # Pull pages that are explicitly wikilinked
+    relevant: list[Path] = []
+    seen: set[str] = set()
+    for name in linked_names:
+        key = name.lower()
+        if key in all_pages and key not in seen:
+            seen.add(key)
+            relevant.append(all_pages[key])
+
+    # If we found fewer than 3 linked pages, fall back to heading-word matching
+    # so we still get some context for sources with no wikilinks yet
+    if len(relevant) < 3:
+        for heading in heading_words:
+            for word in heading.split():
+                key = word.strip(":.,-").lower()
+                if len(key) > 4 and key in all_pages and key not in seen:
+                    seen.add(key)
+                    relevant.append(all_pages[key])
+                if len(relevant) >= 5:
+                    break
+            if len(relevant) >= 5:
+                break
+
+    # Cap at 5 pages to avoid blowing the context window
+    for p in relevant[:5]:
+        parts.append(f"## {p.relative_to(REPO_ROOT)}\n{read_file(p)}")
+
     return "\n\n---\n\n".join(parts)
 
 def parse_json_from_response(text:str) -> dict:
@@ -84,16 +148,6 @@ def update_index(new_entry: str, section: str = "Sources"):
     if not content:
         content = "# Wiki Index\n\n## Overview\n- [Overview](overview.md) — living synthesis\n\n## Sources\n\n## Entities\n\n## Concepts\n\n## Syntheses\n"
     section_header = f"## {section}"
-    if section_header in content:
-        content = content.replace(section_header + "\n", section_header + "\n" + new_entry + "\n")
-    else:
-        content += f"\n{section_header}\n{new_entry}\n"
-    write_file(INDEX_FILE, content)
-    
-    if not content:
-        content = "# Wiki Index\n\n## Overview\n- [Overview](overview.md) — living synthesis\n\n## Sources\n\n## Entities\n\n## Concepts\n\n## Syntheses\n"
-    section_header = f"## {section}"
-    
     if section_header in content:
         content = content.replace(section_header + "\n", section_header + "\n" + new_entry + "\n")
     else:
@@ -260,7 +314,7 @@ def ingest(source_path:str) -> None:
     today = date.today().isoformat()
     print(f"\nIngesting: {source.name}  (hash: {source_hash})")
     
-    wiki_context = build_wiki_context()
+    wiki_context = build_wiki_context(source_content)
     schema = read_file(SCHEMA_FILE)
     
     note_type = detect_note_type(source, source_content)
@@ -273,7 +327,7 @@ def ingest(source_path:str) -> None:
     except (ValueError, json.JSONDecodeError) as e:
         print(f"Error: Failed to parse JSON from LLM response: {e}")
         print("Raw response saved to /tmp/ingest_debug.txt:\n")
-        Path("/tmp/ingestr_debug.txt").write_text(raw)
+        Path("/tmp/ingest_debug.txt").write_text(raw)
         sys.exit(1)
         
     # Write source page
@@ -351,6 +405,13 @@ def ingest(source_path:str) -> None:
         action=f"ingest | {data['title']}",
         details=f"Created {len(created_pages)} pages. Contradictions: {len(contradictions)}"
     )
+    
+    # Record which pages this source created so refresh.py can clean them up later
+    manifest = load_manifest()
+    manifest[str(source.resolve())] = [
+        str((WIKI_DIR / p).resolve()) for p in created_pages
+    ]
+    save_manifest(manifest)
     
 def update_status(action: str, details: str):
     """Write a status file so Gemini CLI knows the current wiki state."""

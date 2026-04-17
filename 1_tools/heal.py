@@ -26,7 +26,7 @@ def call_llm(prompt: str, max_tokens: int = 1500) -> str:
         sys.exit(1)
         
     genai.configure(api_key=api_key)
-    model_name = os.getenv("LLM_MODEL", "gemini-3-flash-preview")
+    model_name = os.getenv("LLM_MODEL", "gemini-3.1-flash-preview")
     model = genai.GenerativeModel(model_name)
 
     response = model.generate_content(
