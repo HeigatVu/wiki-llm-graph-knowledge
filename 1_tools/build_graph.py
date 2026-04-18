@@ -7,7 +7,11 @@ import webbrowser
 from pathlib import Path
 from datetime import date
 
-from utils import _call_gemini
+from utils import (
+    _call_gemini, REPO_ROOT, WIKI_DIR, GRAPH_DIR, GRAPH_JSON, GRAPH_HTML, 
+    CACHE_FILE, INFERRED_EDGES_FILE, LOG_FILE, SCHEMA_FILE,
+    read_file, sha256, all_wiki_pages, extract_wikilinks
+)
 
 try:
     import networkx as nx
@@ -16,16 +20,6 @@ try:
 except ImportError:
     HAS_NETWORKX = False
     print("Warning: networkx not installed. Community detection disabled. Run: pip install networkx")
-
-REPO_ROOT = Path(__file__).parent.parent
-WIKI_DIR = REPO_ROOT / "30_wiki"
-GRAPH_DIR = REPO_ROOT / "2_graph"
-GRAPH_JSON = GRAPH_DIR / "graph.json"
-GRAPH_HTML = GRAPH_DIR / "graph.html"
-CACHE_FILE = GRAPH_DIR / ".cache.json"
-INFERRED_EDGES_FILE = GRAPH_DIR / ".inferred_edges.jsonl"
-LOG_FILE = WIKI_DIR / "log.md"
-SCHEMA_FILE = WIKI_DIR / "GEMINI.md"
 
 # Node type → color mapping
 TYPE_COLORS = {
@@ -43,21 +37,6 @@ EDGE_COLORS = {
 }
 
 
-def read_file(path: Path) -> str:
-    return path.read_text(encoding="utf-8") if path.exists() else ""
-
-
-def sha256(text: str) -> str:
-    return hashlib.sha256(text.encode()).hexdigest()
-
-
-def all_wiki_pages() -> list[Path]:
-    return [p for p in WIKI_DIR.rglob("*.md")
-            if p.name not in ("index.md", "log.md", "lint-report.md")]
-
-
-def extract_wikilinks(content: str) -> list[str]:
-    return list(set(re.findall(r'\[\[([^\]]+)\]\]', content)))
 
 
 def extract_frontmatter_type(content: str) -> str:

@@ -6,35 +6,12 @@ import re
 from typing import Optional
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).parent.parent
-WIKI_DIR = REPO_ROOT / "30_wiki"
+from utils import REPO_ROOT, WIKI_DIR, MANIFEST_FILE, read_file, sha256, safe_wiki_path, load_manifest
+
 RAW_DIR = REPO_ROOT / "raw"
 SOURCES_DIR = WIKI_DIR / "sources"
 REFRESH_CACHE = REPO_ROOT / "2_graph" / ".refresh_cache.json"
-MANIFEST_FILE = REPO_ROOT / "2_graph" / ".ingest_manifest.json"
 
-def safe_wiki_path(relative_path: str) -> Path:
-    """Resolve a wiki-relative path and ensure it stays inside WIKI_DIR."""
-    rel = Path(relative_path)
-    if rel.is_absolute():
-        raise ValueError(f"Refusing absolute path inside wiki: {relative_path!r}")
-    candidate = (WIKI_DIR / rel).resolve()
-    wiki_root = WIKI_DIR.resolve()
-    if candidate != wiki_root and wiki_root not in candidate.parents:
-        raise ValueError(
-            f"Refusing path that escapes wiki directory: {relative_path!r}"
-        )
-    return candidate
-
-
-def load_manifest() -> dict:
-    """Load the ingest manifest."""
-    if MANIFEST_FILE.exists():
-        try:
-            return json.loads(MANIFEST_FILE.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, IOError):
-            return {}
-    return {}
 
 def delete_stale_pages(raw_path: Path) -> int:
     """Delete wiki pages previously created by this source file.
@@ -55,12 +32,6 @@ def delete_stale_pages(raw_path: Path) -> int:
 
     return deleted
 
-def sha256(text: str) -> str:
-    return hashlib.sha256(text.encode()).hexdigest()[:16]
-
-
-def read_file(path: Path) -> str:
-    return path.read_text(encoding="utf-8") if path.exists() else ""
 
 
 def load_refresh_cache() -> dict:

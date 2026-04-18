@@ -8,40 +8,8 @@ from datetime import date
 import os
 from utils import _call_ollama
 
-REPO_ROOT = Path(__file__).parent.parent
-WIKI_DIR = REPO_ROOT / "30_wiki"
-LOG_FILE = WIKI_DIR / "log.md"
-INDEX_FILE = WIKI_DIR / "index.md"
-OVERVIEW_FILE = WIKI_DIR / "overview.md"
-SCHEMA_FILE = WIKI_DIR / "GEMINI.md"
+from utils import _call_ollama, read_file, write_file, append_log, safe_wiki_path, REPO_ROOT, WIKI_DIR, LOG_FILE, INDEX_FILE, OVERVIEW_FILE, SCHEMA_FILE
 
-def safe_wiki_path(relative_path: str) -> Path:
-    """Resolve a wiki-relative path and ensure it stays inside WIKI_DIR.
-
-    Rejects absolute paths and traversal (e.g. '../etc/passwd') that would
-    escape the wiki directory. Used to sanitize user-supplied --save paths.
-    """
-    rel = Path(relative_path)
-    if rel.is_absolute():
-        raise ValueError(f"Refusing absolute path inside wiki: {relative_path!r}")
-    candidate = (WIKI_DIR / rel).resolve()
-    wiki_root = WIKI_DIR.resolve()
-    if candidate != wiki_root and wiki_root not in candidate.parents:
-        raise ValueError(
-            f"Refusing path that escapes wiki directory: {relative_path!r}"
-        )
-    return candidate
-
-
-def read_file(path:Path) -> str:
-    """Read file content safely."""
-    return path.read_text(encoding="utf-8") if path.exists() else ""
-
-def write_file(path:Path, content:str) -> None:
-    """Write file content safely."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
-    print(f"Wrote: {path.relative_to(REPO_ROOT)}")
 
 def find_relevant_pages(question: str, index_content: str) -> list[Path]:
     """Ask the LLM to identify relevant pages from the index."""
@@ -77,10 +45,7 @@ def find_relevant_pages(question: str, index_content: str) -> list[Path]:
 
     return relevant[:15]
 
-def append_log(entry: str):
-    existing = read_file(LOG_FILE)
-    LOG_FILE.write_text(entry.strip() + "\n\n" + existing, encoding="utf-8")
-    
+
 def query(question: str, save_path: str | None = None):
     today = date.today().isoformat()
 

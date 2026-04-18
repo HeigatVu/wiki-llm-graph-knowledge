@@ -16,28 +16,13 @@ except ImportError:
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 
-REPO_ROOT = Path(__file__).parent.parent
-WIKI_DIR = REPO_ROOT / "30_wiki"
-GRAPH_DIR = REPO_ROOT / "2_graph"
-GRAPH_JSON = GRAPH_DIR / "graph.json"
+from utils import REPO_ROOT, WIKI_DIR, GRAPH_DIR, GRAPH_JSON, read_file, extract_wikilinks, all_wiki_pages
+
 GAP_REPORT = GRAPH_DIR / "gap-report.md"
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
-def read_file(path: Path) -> str:
-    return path.read_text(encoding="utf-8") if path.exists() else ""
-
-
-def extract_wikilinks(content: str) -> list[str]:
-    return re.findall(r"\[\[([^\]]+)\]\]", content)
-
-
-def all_wiki_pages() -> list[Path]:
-    return [
-        p for p in WIKI_DIR.rglob("*.md")
-        if p.name not in ("index.md", "log.md", "lint-report.md")
-    ]
 
 
 def page_id(path: Path) -> str:

@@ -6,24 +6,8 @@ import re
 from pathlib import Path 
 from datetime import date
 
-from utils import _call_gemini
+from utils import _call_gemini, read_file, write_file, extract_wikilinks, append_log, REPO_ROOT, WIKI_DIR, LOG_FILE, INDEX_FILE, OVERVIEW_FILE, SCHEMA_FILE, MANIFEST_FILE, load_manifest
 
-REPO_ROOT = Path(__file__).parent.parent
-WIKI_DIR = REPO_ROOT / "30_wiki"
-LOG_FILE = WIKI_DIR / "log.md"
-INDEX_FILE = WIKI_DIR / "index.md"
-OVERVIEW_FILE = WIKI_DIR / "overview.md"
-SCHEMA_FILE = WIKI_DIR / "GEMINI.md"
-MANIFEST_FILE = REPO_ROOT / "2_graph" / ".ingest_manifest.json"
-
-def load_manifest() -> dict:
-    """Load the ingest manifest mapping source files to created wiki pages."""
-    if MANIFEST_FILE.exists():
-        try:
-            return json.loads(MANIFEST_FILE.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, IOError):
-            return {}
-    return {}
 
 def save_manifest(manifest: dict) -> None:
     """Save the ingest manifest."""
@@ -34,9 +18,6 @@ def sha256(text:str) -> str:
     """Compute SHA256 hash of text."""
     return hashlib.sha256(text.encode()).hexdigest()[:16]
 
-def read_file(path:Path) -> str:
-    """Read file content safely."""
-    return path.read_text(encoding="utf-8") if path.exists() else ""
 
 def safe_wiki_path(relative_path: str) -> Path:
     """Resolve a wiki-relative path and ensure it stays inside WIKI_DIR.
@@ -71,12 +52,7 @@ def safe_slug(slug: str) -> str:
     return cleaned[:100]
 
 
-def write_file(path:Path, content:str) -> None:
-    """Write file content safely."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
-    print(f"Wrote: {path.relative_to(REPO_ROOT)}")
-    
+
 def build_wiki_context(source_content: str) -> str:
     """Build wiki context from index, overview, and topically relevant sources.
     
@@ -164,14 +140,6 @@ def update_index(new_entry: str, section: str = "Sources"):
         content += f"\n{section_header}\n{new_entry}\n"
     write_file(INDEX_FILE, content)
     
-def append_log(entry:str) -> None:
-    """Append entry to log.md."""
-    existing = read_file(LOG_FILE)
-    write_file(LOG_FILE, entry.strip() + "\n\n" + existing)
-    
-def extract_wikilinks(content:str) -> list[str]:
-    """Extract wikilinks from content."""
-    return re.findall(r"\[\[([^\]]+)\]\]", content)
 
 def all_wiki_pages() -> set[str]:
     """Return set of all wiki page titles."""

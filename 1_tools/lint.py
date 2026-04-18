@@ -8,26 +8,12 @@ from pathlib import Path
 from collections import defaultdict
 from datetime import date
 
-from utils import _call_gemini
-
-REPO_ROOT = Path(__file__).parent.parent
-WIKI_DIR = REPO_ROOT / "30_wiki"
-GRAPH_DIR = REPO_ROOT / "2_graph"
-GRAPH_JSON = GRAPH_DIR / "graph.json"
-LOG_FILE = WIKI_DIR / "log.md"
-INDEX_FILE = WIKI_DIR / "index.md"
-SCHEMA_FILE = WIKI_DIR / "GEMINI.md"
-
-def read_file(path: Path) -> str:
-    return path.read_text(encoding="utf-8") if path.exists() else ""
+from utils import _call_gemini, read_file, extract_wikilinks, append_log, REPO_ROOT, WIKI_DIR, GRAPH_DIR, GRAPH_JSON, SCHEMA_FILE
 
 def all_wiki_pages() -> list[Path]:
     return [p for p in WIKI_DIR.rglob("*.md")
             if p.name not in ("index.md", "log.md", "lint-report.md")]
 
-
-def extract_wikilinks(content: str) -> list[str]:
-    return re.findall(r'\[\[([^\]]+)\]\]', content)
 
 
 def page_name_to_path(name: str) -> list[Path]:
@@ -399,10 +385,7 @@ def run_lint():
     print("\n" + report)
     return report
     
-def append_log(entry: str):
-    existing = read_file(LOG_FILE)
-    LOG_FILE.write_text(entry.strip() + "\n\n" + existing, encoding="utf-8")
-    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Lint the LLM Wiki")

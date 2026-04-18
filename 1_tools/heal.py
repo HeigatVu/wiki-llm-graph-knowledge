@@ -1,18 +1,13 @@
 import os
 import sys
+import argparse
+import subprocess
 from pathlib import Path
 
-from utils import _call_gemini
-
-# Ensure the tools directory is in the path to allow imports
-sys.path.insert(0, str(Path(__file__).parent))
+from utils import _call_gemini, REPO_ROOT, WIKI_DIR, ENTITIES_DIR
 import lint
 find_missing_entities = lint.find_missing_entities
 all_wiki_pages = lint.all_wiki_pages
-
-REPO_ROOT = Path(__file__).parent.parent
-WIKI_DIR = REPO_ROOT / "30_wiki"
-ENTITIES_DIR = WIKI_DIR / "entities"
 
 def search_sources(entity: str, pages: list[Path]) -> list[Path]:
     """Find up to 15 pages where this entity is mentioned natively."""
