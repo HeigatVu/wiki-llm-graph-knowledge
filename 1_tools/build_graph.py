@@ -9,6 +9,8 @@ from datetime import date
 
 import os
 
+from utils import _call_gemini
+
 try:
     import networkx as nx
     from networkx.algorithms import community as nx_community
@@ -45,33 +47,6 @@ EDGE_COLORS = {
 
 def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
-
-
-def call_llm(prompt: str, max_tokens: int = 8192) -> str:
-    """Call LLM with prompt."""
-    try:
-        import google.generativeai as genai
-    except ImportError:
-        print("Error: google-generativeai not installed. Run: pip install google-generativeai")
-        import sys
-        sys.exit(1)
-
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        print("Error: GEMINI_API_KEY not set in .env file")
-        import sys
-        sys.exit(1)
-
-    genai.configure(api_key=api_key)
-    model_name = os.getenv("LLM_MODEL", "gemini-3.1-flash-preview")
-    model = genai.GenerativeModel(model_name)
-
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.types.GenerationConfig(max_output_tokens=max_tokens)
-    )
-
-    return response.text
 
 
 def sha256(text: str) -> str:
@@ -292,7 +267,7 @@ Rules:
         page_edges = []
         valid_rels = []
         try:
-            raw = call_llm(prompt, max_tokens=1024)
+            raw = _call_gemini(prompt, max_tokens=1024)
             raw = raw.strip()
 
             match = re.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", raw)

@@ -6,6 +6,8 @@ import re
 from pathlib import Path 
 from datetime import date
 
+from utils import _call_gemini
+
 REPO_ROOT = Path(__file__).parent.parent
 WIKI_DIR = REPO_ROOT / "30_wiki"
 LOG_FILE = WIKI_DIR / "log.md"
@@ -35,30 +37,6 @@ def sha256(text:str) -> str:
 def read_file(path:Path) -> str:
     """Read file content safely."""
     return path.read_text(encoding="utf-8") if path.exists() else ""
-
-def call_llm(prompt:str, max_tokens:int=8192) -> str:
-    """Call LLM with prompt."""
-    try:
-        import google.generativeai as genai
-    except ImportError:
-        print("Error: google-generativeai not installed. Run: pip install google-generativeai")
-        sys.exit(1)
-        
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        print("Error: GEMINI_API_KEY not set in .env file")
-        sys.exit(1)
-
-    genai.configure(api_key=api_key)
-    model_name = os.getenv("LLM_MODEL", "gemini-3.1-flash-preview")
-    model = genai.GenerativeModel(model_name)
-
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.types.GenerationConfig(max_output_tokens=max_tokens)
-    )
-
-    return response.text
 
 def safe_wiki_path(relative_path: str) -> Path:
     """Resolve a wiki-relative path and ensure it stays inside WIKI_DIR.
@@ -376,7 +354,7 @@ def ingest(source_path:str) -> None:
     prompt = build_ingest_prompt(source_content, source, wiki_context, schema, today, note_type)
     
     print(f"Calling API (model: ...)")
-    raw = call_llm(prompt, max_tokens=8192)
+    raw = _call_gemini(prompt, max_tokens=8192)
     try:
         data = parse_json_from_response(raw)
     except (ValueError, json.JSONDecodeError) as e:

@@ -6,6 +6,7 @@ from pathlib import Path
 from datetime import date
 
 import os
+from utils import _call_ollama
 
 REPO_ROOT = Path(__file__).parent.parent
 WIKI_DIR = REPO_ROOT / "30_wiki"
@@ -41,31 +42,6 @@ def write_file(path:Path, content:str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
     print(f"Wrote: {path.relative_to(REPO_ROOT)}")
-    
-def call_llm(prompt:str, max_tokens:int=8192) -> str:
-    """Call LLM with prompt."""
-    try:
-        import google.generativeai as genai
-    except ImportError:
-        print("Error: google-generativeai not installed. Run: pip install google-generativeai")
-        sys.exit(1)
-        
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        print("Error: GEMINI_API_KEY not set in .env file")
-        sys.exit(1)
-    model = os.getenv("LLM_MODEL")
-
-    genai.configure(api_key=api_key)
-    model_name = os.getenv("LLM_MODEL", "gemini-3-flash-preview")
-    model = genai.GenerativeModel(model_name)
-
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.types.GenerationConfig(max_output_tokens=max_tokens)
-    )
-
-    return response.text
 
 def find_relevant_pages(question: str, index_content: str) -> list[Path]:
     """Ask the LLM to identify relevant pages from the index."""
@@ -84,7 +60,7 @@ def find_relevant_pages(question: str, index_content: str) -> list[Path]:
             Examples: ["sources/papers/slug.md", "sources/notes/slug.md", "concepts/Bar.md"]
             Maximum 10 pages.
             """
-    raw = call_llm(prompt, max_tokens=512)
+    raw = _call_ollama(prompt, max_tokens=512)
     raw = raw.strip()
     raw = re.sub(r"^```(?:json)?\s*", "", raw)
     raw = re.sub(r"\s*```$", "", raw)
@@ -135,7 +111,7 @@ def query(question: str, save_path: str | None = None):
             Examples: ["sources/papers/slug.md", "sources/notes/slug.md", "concepts/Bar.md"]
             Maximum 10 pages.
             """
-        raw = call_llm(prompt, max_tokens=512)
+        raw = _call_ollama(prompt, max_tokens=512)
         raw = raw.strip()
         raw = re.sub(r"^```(?:json)?\s*", "", raw)
         raw = re.sub(r"\s*```$", "", raw)
@@ -175,7 +151,7 @@ def query(question: str, save_path: str | None = None):
 
         Write a well-structured markdown answer with headers, bullets, and [[wikilink]] citations. At the end, add a ## Sources section listing the pages you drew from.
         """
-    answer = call_llm(prompt, "LLM_MODEL", "claude-3-5-sonnet-latest", max_tokens=4096)
+    answer = _call_ollama(prompt, max_tokens=4096)
     print("\n" + "=" * 60)
     print(answer)
     print("=" * 60)

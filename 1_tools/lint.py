@@ -8,7 +8,7 @@ from pathlib import Path
 from collections import defaultdict
 from datetime import date
 
-import os
+from utils import _call_gemini
 
 REPO_ROOT = Path(__file__).parent.parent
 WIKI_DIR = REPO_ROOT / "30_wiki"
@@ -20,30 +20,6 @@ SCHEMA_FILE = WIKI_DIR / "GEMINI.md"
 
 def read_file(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
-
-def call_llm(prompt:str, max_tokens:int=8192) -> str:
-    """Call LLM with prompt."""
-    try:
-        import google.generativeai as genai
-    except ImportError:
-        print("Error: google-generativeai not installed. Run: pip install google-generativeai")
-        sys.exit(1)
-        
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        print("Error: GEMINI_API_KEY not set in .env file")
-        sys.exit(1)
-
-    genai.configure(api_key=api_key)
-    model_name = os.getenv("LLM_MODEL", "gemini-3.1-flash-preview")
-    model = genai.GenerativeModel(model_name)
-
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.types.GenerationConfig(max_output_tokens=max_tokens)
-    )
-
-    return response.text
 
 def all_wiki_pages() -> list[Path]:
     return [p for p in WIKI_DIR.rglob("*.md")
@@ -317,7 +293,7 @@ def run_lint():
     Do not report gaps — those are handled separately.
     Pages: {pages_context}
     Return: ## Contradictions\n## Stale Content"""
-    contradiction_report = call_llm(prompt, max_tokens=1500)
+    contradiction_report = _call_gemini(prompt, max_tokens=1500)
 
     # Compose full report
     report_lines = [

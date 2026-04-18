@@ -282,13 +282,16 @@ provided prompt to generate markdown following
 
 1. Upload your PDF to NotebookLM
 2. Run the extraction prompt (see `10_System/Templates/NotebookLM_Prompt.md`) or use my suggert prompt:
-### paper_prompt
+### Paper prompt
 ```
-You are a research assistant helping me summarize academic papers 
-into structured markdown notes. I am a researcher in biosignal processing.
+You are a research assistant helping me summarize academic papers into structured markdown notes. I am a researcher in biosignal processing.
 
-Extract information from this paper and return ONLY a markdown note 
-using EXACTLY this format — no extra text, no preamble:
+First, classify the paper type before filling any section:
+- EMPIRICAL: presents new experiments, datasets, models, or systems
+- REVIEW / SURVEY: synthesizes existing literature without new experiments
+Write [PAPER TYPE: EMPIRICAL] or [PAPER TYPE: REVIEW] on the very first line of your output, then the frontmatter block.
+
+Extract information from this paper and return ONLY a markdown note using EXACTLY this format — no extra text, no preamble:
 
 ---
 
@@ -305,39 +308,59 @@ tags:
 ---
 
 ## Core Contribution
-One sentence: what specific problem does this paper solve and 
-what is the key novelty?
+One sentence: what specific problem does this paper solve and what is the key novelty?
 
 ## Key Methodology (Important)
-Focus heavily on this section. For each method or technique, include:
+
+### If EMPIRICAL paper:
+For each method or technique, include:
 - **Method name**: what it is in one line
-  - Input: what signal/data goes in (type, sampling rate, channels if mentioned)
+  - Input: signal/data type, sampling rate, channels if mentioned
   - Processing steps: exact sequence of operations
   - Key parameters: specific values, thresholds, window sizes, filter specs
   - Output: what comes out
-  
-Cover ALL of these if present in the paper:
+
+Cover ALL of these if present:
 - Signal acquisition setup (hardware, electrode placement, sampling rate)
 - Preprocessing pipeline (filtering, artifact removal, segmentation)
 - Feature extraction methods
 - Classification or modeling approach
 - Evaluation protocol (dataset, cross-validation strategy, metrics)
 
-## Results & Conclusions
-- 3-5 bullet points of key quantitative results (include exact numbers)
-- One sentence on the main conclusion
-- One sentence on stated limitations
-  
-If research paper is a litetature review, you focus on technique that they use pros/cons and it performance on dataset.
+### If REVIEW / SURVEY paper:
+For each technique or method category covered in the review:
+- **Technique name**
+  - How it works (1–2 sentences)
+  - Reported pros: (from the review's own assessment)
+  - Reported cons / limitations:
+  - Performance on benchmark datasets: (exact numbers if given)
+  - Datasets used in reviewed studies: (names, sizes)
 
-## Personal Critique & Ideas for future improvement
-- In the paper has this part, you can write in there
+Then add:
+- **Gaps identified by the authors**: what the review says is missing or unsolved
+- **Recommended directions**: what the authors suggest as future work
+
+## Results & Conclusions
+
+### If EMPIRICAL:
+- 3–5 bullet points of key quantitative results (include exact numbers)
+- Main conclusion (one sentence)
+- Stated limitations (one sentence)
+
+### If REVIEW / SURVEY:
+- Summary of the field's overall performance landscape (one paragraph)
+- Which technique category performs best and under what conditions
+- Consensus limitations across the reviewed studies
+
+## Personal Critique & Ideas for Future Improvement
+(Skip this section for review/survey papers unless you have a specific view to add)
+- Write your own critical observations here after reading
 
 ## Related Notes
-- Compare with previous paper that I give you write in [[**file name without extension** of similar paper]]
+- Use [[filename-without-extension]] to link to similar papers already in your notes
+- Only include links you are confident about — do not hallucinate filenames
 ```
-
-### book_prompt
+### Book_prompt
 ```
 Can you list out all important contents in this book in order to create
 checkpoints for me to find later — like an index of the book but with

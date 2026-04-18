@@ -2,11 +2,7 @@ import os
 import sys
 from pathlib import Path
 
-try:
-    import google.generativeai as genai
-except ImportError:
-    print("Error: google-generativeai not installed. Run: pip install google-generativeai")
-    sys.exit(1)
+from utils import _call_gemini
 
 # Ensure the tools directory is in the path to allow imports
 sys.path.insert(0, str(Path(__file__).parent))
@@ -17,24 +13,6 @@ all_wiki_pages = lint.all_wiki_pages
 REPO_ROOT = Path(__file__).parent.parent
 WIKI_DIR = REPO_ROOT / "30_wiki"
 ENTITIES_DIR = WIKI_DIR / "entities"
-
-def call_llm(prompt: str, max_tokens: int = 1500) -> str:
-    """Call LLM with prompt."""
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        print("Error: GEMINI_API_KEY not set in .env file")
-        sys.exit(1)
-        
-    genai.configure(api_key=api_key)
-    model_name = os.getenv("LLM_MODEL", "gemini-3.1-flash-preview")
-    model = genai.GenerativeModel(model_name)
-
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.types.GenerationConfig(max_output_tokens=max_tokens)
-    )
-
-    return response.text
 
 def search_sources(entity: str, pages: list[Path]) -> list[Path]:
     """Find up to 15 pages where this entity is mentioned natively."""
@@ -84,7 +62,7 @@ sources: {[s.name for s in sources]}
 Write a comprehensive paragraph defining what `{entity}` means in the context of this wiki, its main significance, and any actions or associations related to it.
 """
         try:
-            result = call_llm(prompt)
+            result = _call_gemini(prompt)
             out_path = ENTITIES_DIR / f"{entity}.md"
             out_path.write_text(result, encoding="utf-8")
             print(f" -> Saved to {out_path.relative_to(REPO_ROOT)}")
