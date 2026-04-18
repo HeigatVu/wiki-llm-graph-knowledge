@@ -1,47 +1,5 @@
 import os
 import requests
-
-from dotenv import load_dotenv
-load_dotenv()
-
-def _call_ollama(prompt: str, max_tokens: int) -> str:
-    model = os.getenv("OLLAMA_MODEL", "llama3.2")
-    response = requests.post(
-        "http://localhost:11434/api/generate",
-        json={
-            "model": model,
-            "prompt": prompt,
-            "stream": False,
-            "options": {"num_predict": max_tokens}
-        }
-    )
-    return response.json()["response"]
-
-def _call_gemini(prompt: str, max_tokens: int) -> str:
-    """Call LLM with prompt."""
-    try:
-        import google.generativeai as genai
-    except ImportError:
-        print("Error: google-generativeai not installed. Run: pip install google-generativeai")
-        sys.exit(1)
-        
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        print("Error: GEMINI_API_KEY not set in .env file")
-        sys.exit(1)
-
-    genai.configure(api_key=api_key)
-    model_name = os.getenv("LLM_MODEL", "gemini-3.1-flash-preview")
-    model = genai.GenerativeModel(model_name)
-
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.types.GenerationConfig(max_output_tokens=max_tokens)
-    )
-
-    return response.text
-import os
-import requests
 import sys
 
 from dotenv import load_dotenv
