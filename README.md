@@ -209,24 +209,14 @@ gemini
 ```
 
 Inside Gemini CLI you can use plain English or shorthand triggers:
+- `/wiki-ingest <file>` → run Ingest Workflow
+- `/wiki-query <question>` → run Query Workflow  
+- `/wiki-lint` → run Lint Workflow
+- `/wiki-graph` → run Graph Workflow
+- `/wiki-gap` → run Gap Analysis
+- `/wiki-heal` → run Heal Workflow
+- `/wiki-refresh` → run Refresh Workflow
 
-```
-# Query the wiki
-query: what do I know about biosignal processing?
-query: what connects my latest papers?
-
-# Check wiki health
-lint
-
-# Build the knowledge graph
-build graph
-
-# Ingest a new source
-ingest 20_raw/20.2_notes/new-note.md
-
-# Check what the Python pipeline last did
-read WIKI_STATUS.md and tell me what was last done
-```
 
 ---
 

@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import google.generativeai as genai
+import time
 
 def _call_ollama(prompt: str, max_tokens: int) -> str:
     model = os.getenv("OLLAMA_MODEL", "llama3.2")
@@ -38,6 +39,9 @@ def _call_gemini(prompt: str, max_tokens: int) -> str:
     if not api_key:
         print("Error: GEMINI_API_KEY not set in .env file")
         sys.exit(1)
+
+    # Sleep 5-10 seconds to avoid hitting Requests Per Minute (RPM) limits
+    time.sleep(10)
 
     genai.configure(api_key=api_key)
     model_name = os.getenv("LLM_MODEL", "gemini-3.1-flash-preview")

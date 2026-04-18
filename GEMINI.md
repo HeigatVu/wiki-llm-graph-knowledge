@@ -12,19 +12,23 @@ When the user opens this repo, ALWAYS read these files first before doing anythi
 Then greet the user with a one-line summary of the current wiki state.
 Example: "Wiki has 12 papers, 8 notes, 34 concepts. Last action: ingest | Attention Is All You Need."
 
-## How to Use
+## Slash Commands (Gemini CLI)
 
-Describe what you want in plain English:
-- *"Ingest this file: 20_raw/papers/my-paper.md"*
+| Command | What to say / Example |
+|---|---|
+| `/wiki-ingest` | `ingest 20_raw/my-article.md` |
+| `/wiki-query` | `query: what are the main themes?` |
+| `/wiki-lint` | `lint the wiki` |
+| `/wiki-graph` | `build the knowledge graph` |
+| `/wiki-gap` | `find research gaps` |
+| `/wiki-heal` | `heal missing pages` |
+| `/wiki-refresh` | `refresh indices` |
+
+Or just describe what you want in plain English:
+- *"Ingest this file: 20_raw/papers/attention-is-all-you-need.md"*
 - *"What does the wiki say about transformer models?"*
 - *"Check the wiki for orphan pages and contradictions"*
-- *"Build the knowledge graph"*
-
-Or use shorthand triggers:
-- `ingest <file>` → runs the Ingest Workflow
-- `query: <question>` → runs the Query Workflow
-- `lint` → runs the Lint Workflow
-- `build graph` → runs the Graph Workflow
+- *"Build the graph and show me what's connected to Alzheimer's"*
 
 ---
 
@@ -77,15 +81,6 @@ Triggered by: *"ingest <file>"*
 7. Flag contradictions with existing wiki content
 8. Append to `30_wiki/log.md`: `## [YYYY-MM-DD] ingest | <Title>`
 9. **Post-ingest validation** — check for broken `[[wikilinks]]`, verify all new pages are in `index.md`, print a change summary
-
-## Slash Command Shortcuts
-- `/wiki-ingest <file>` → run Ingest Workflow
-- `/wiki-query <question>` → run Query Workflow  
-- `/wiki-lint` → run Lint Workflow
-- `/wiki-graph` → run Graph Workflow
-- `/wiki-gap` → run Gap Analysis
-- `/wiki-heal` → run Heal Workflow
-- `/wiki-refresh` → run Refresh Workflow
 
 
 ### Source Page Format
@@ -231,9 +226,17 @@ Triggered by: *"query: <question>"*
 
 ## Lint Workflow
 
-Triggered by: *"lint"*
+Triggered by: *"/wiki-lint"*
 
-Check for: orphan pages, broken links, contradictions, stale content, missing entity pages, data gaps.
+Use tools (like grep_search and view_file) to check for:
+- **Orphan pages** — wiki pages with no inbound `[[links]]` from other pages
+- **Broken links** — `[[WikiLinks]]` pointing to pages that don't exist
+- **Contradictions** — claims that conflict across pages
+- **Stale summaries** — pages not updated after newer sources
+- **Missing entity pages** — entities mentioned in 3+ pages but lacking their own page
+- **Data gaps** — questions the wiki can't answer; suggest new sources
+
+Output a lint report and ask if the user wants it saved to `30_wiki/lint-report.md`.
 
 ---
 
@@ -241,7 +244,38 @@ Check for: orphan pages, broken links, contradictions, stale content, missing en
 
 Triggered by: *"build graph"*
 
-Try `python run.py graph --open` first. If unavailable, build graph.json and graph.html manually from wikilinks.
+Try `uv run main.py graph --open --no-infer` first. If unavailable, build graph.json and graph.html manually from wikilinks.
+
+---
+
+## Gap Analysis Workflow
+
+Triggered by: *"/wiki-gap"*
+
+1. Read `30_wiki/overview.md` to understand the current "center of gravity" of the research.
+2. Read `30_wiki/index.md` to see the breadth of Entities and Concepts.
+3. Compare current state against the **Research Pillars** (e.g., Data Types, Processing, Models, Clinical context).
+4. Identify "Islands": Topics mentioned with no supporting source papers.
+5. Identify "Dead Ends": Claims that lack citations or follow-up.
+6. Propose 3-5 specific questions or topics the user should research next.
+
+---
+
+## Heal Workflow
+
+Triggered by: *"/wiki-heal"*
+
+1. Identify concepts/entities in `index.md` mentioned 3+ times without a dedicated page.
+2. For each, search the wiki for all mentions to gather context.
+3. Create a new `entities/` or `concepts/` page using the standard template.
+4. Update `30_wiki/index.md` and `30_wiki/overview.md`.
+
+---
+
+## Resource & Rate Limit Management
+
+- **Rate Limits:** If the user asks to ingest more than 3 files at once, recommend they use the Python script (`for f in ...; do python 1_tools/ingest.py "$f"; done`) to respect the 10-second `time.sleep` delays and avoid API limits.
+- **Context Limits:** Avoid reading more than 10 large files in a single turn to prevent context overflow.
 
 ---
 
@@ -250,6 +284,33 @@ Try `python run.py graph --open` first. If unavailable, build graph.json and gra
 - Source slugs: `kebab-case`
 - Entity/Concept pages: `TitleCase.md`
 
+## Index Format
+
+```markdown
+# Wiki Index
+
+## Overview
+- [Overview](overview.md) — living synthesis
+
+## Sources
+- [Source Title](sources/slug.md) — one-line summary
+
+## Entities
+- [Entity Name](entities/EntityName.md) — one-line description
+
+## Concepts
+- [Concept Name](concepts/ConceptName.md) — one-line description
+
+## Syntheses
+- [Analysis Title](syntheses/slug.md) — what question it answers
+```
+
 ## Log Format
 
-`## [YYYY-MM-DD] <operation> | <title>`
+Each entry starts with `## [YYYY-MM-DD] <operation> | <title>` so it's grep-parseable:
+
+```
+grep "^## \[" 30_wiki/log.md | tail -10
+```
+
+Operations: `ingest`, `query`, `lint`, `graph`, `gap`, `heal`, `refresh`
