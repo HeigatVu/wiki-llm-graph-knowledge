@@ -5,7 +5,7 @@ import sys
 from dotenv import load_dotenv
 load_dotenv()
 
-import google.generativeai as genai
+import google.genai as genai
 import time
 
 def _call_ollama(prompt: str, max_tokens: int) -> str:
