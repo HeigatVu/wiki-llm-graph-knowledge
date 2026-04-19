@@ -8,11 +8,8 @@ from pathlib import Path
 from collections import defaultdict
 from datetime import date
 
-from utils import _call_gemini, read_file, extract_wikilinks, append_log, REPO_ROOT, WIKI_DIR, GRAPH_DIR, GRAPH_JSON, SCHEMA_FILE
+from utils import _call_gemini, read_file, extract_wikilinks, append_log, all_wiki_pages, REPO_ROOT, WIKI_DIR, GRAPH_DIR, GRAPH_JSON, SCHEMA_FILE
 
-def all_wiki_pages() -> list[Path]:
-    return [p for p in WIKI_DIR.rglob("*.md")
-            if p.name not in ("index.md", "log.md", "lint-report.md")]
 
 
 

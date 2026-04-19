@@ -16,6 +16,8 @@ TOOL_MAP = {
     "refresh": "1_tools/refresh.py",
     "heal":    "1_tools/heal.py",
     "gap":     "1_tools/gap_analysis.py",
+    "serve":   "1_tools/serve.py",
+    "atlas":   "../../update_atlas.py",
 }
 
 def main():

@@ -1,23 +1,14 @@
 # LLM Wiki — Personal Knowledge Base
 
-# Background
+## Background
 
-This repo is a personal LLM-maintained wiki inspired by 
-[Andrej Karpathy's llm-wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) 
+This repo is a personal LLM-maintained wiki inspired by
+[Andrej Karpathy's llm-wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
 and [SamurAIGPT](https://github.com/SamurAIGPT/llm-wiki-agent).
 
-The core problem it solves: linking knowledge across research 
-papers and personal notes, with an LLM handling all the 
-bookkeeping — extracting concepts, building wikilinks, and 
-detecting gaps automatically.
+The core problem it solves: linking knowledge across research papers and personal notes, with an LLM handling all the bookkeeping — extracting concepts, building wikilinks, and detecting gaps automatically.
 
-Each project or knowledge domain should have its own separate 
-wiki instance. The pipeline processes markdown files only, 
-keeping token usage low and making all content readable in 
-Obsidian.
-
-> **Note**: This repo processes markdown files only to save 
-> tokens and keep content readable for Gemini CLI.
+Each project or knowledge domain should have its own separate wiki instance. The pipeline processes markdown files only, keeping token usage low and making all content readable in Obsidian.
 
 ---
 
@@ -25,8 +16,8 @@ Obsidian.
 
 There are two layers:
 
-- **Python pipeline** (`main.py` + `1_tools/`) — handles batch operations: ingesting files, building the knowledge graph, linting for issues, querying for answers.
-- **Gemini CLI** (`GEMINI.md`) — an interactive conversational layer. Open the repo with `gemini` for multi-turn queries, follow-up questions, and exploration. The file `WIKI_STATUS.md` acts as the handoff state between the two layers.
+- **Python pipeline** (`main.py` + `1_tools/`) — handles batch operations: ingesting files, building the knowledge graph, linting for issues, querying for answers, and healing missing pages. All pipeline tasks use the **Gemini REST API** directly.
+- **Gemini CLI** (`GEMINI.md`) — an interactive conversational layer. Open the repo with `gemini` for multi-turn exploration, `/wiki-lint`, `/wiki-heal`, and follow-up questions. `WIKI_STATUS.md` acts as the handoff state between the two layers.
 
 ---
 
@@ -41,21 +32,29 @@ wiki-llm-knowledge/
 │   ├── index.md               # Catalog of all pages
 │   ├── log.md                 # Append-only history
 │   ├── overview.md            # Living synthesis across all sources
-│   ├── sources/
-│   │   ├── papers/            # Ingested academic paper pages
-│   │   └── notes/             # Ingested personal knowledge pages
+│   ├── sources/               # One page per source document
 │   ├── entities/              # People, projects, products
 │   ├── concepts/              # Ideas, frameworks, theories
 │   └── syntheses/             # Saved query answers
 ├── 2_graph/
 │   ├── graph.json             # Auto-generated graph data
-│   └── graph.html             # Visual interactive graph explorer
+│   └── graph.html             # Interactive visual graph explorer
 ├── 1_tools/                   # Python pipeline scripts
-├── 10_System/Templates/       # Note templates for Obsidian
+│   ├── ingest.py              # Source document ingestion
+│   ├── build_graph.py         # Knowledge graph construction (Louvain clustering)
+│   ├── lint.py                # Wiki health checker
+│   ├── heal.py                # Missing entity page generator
+│   ├── query.py               # Question-answering over the wiki
+│   ├── utils.py               # Shared API wrappers and helpers
+│   └── assets/
+│       ├── graph_template.html # Graph UI template
+│       ├── graph.js           # Interactive graph logic
+│       └── graph.css          # Interactive graph CSS
+├── README.md                  # This file
 ├── main.py                    # Single entry point for all commands
-├── GEMINI.md                  # Gemini CLI system prompt and schema
+├── GEMINI.md                  # Gemini CLI system prompt and wiki schema
 ├── WIKI_STATUS.md             # Handoff state between Python and Gemini CLI
-└── .env                       # API key and model configuration
+└── .env                       # API keys and model configuration
 ```
 
 ---
@@ -72,21 +71,22 @@ uv sync
 
 ### 2. Configure `.env`
 
-```
+```env
+# Default model for heal, lint, query, gap (lighter, higher quota)
+LLM_MODEL="gemini-3.1-flash-lite-preview"
+
+# Higher-quality model used specifically for ingest
+INGEST_MODEL="gemini-3-flash-preview"
+
 GEMINI_API_KEY="your-api-key-here"
-LLM_MODEL="gemini-2.0-flash"
+
+# Local model for Ollama (optional)
+OLLAMA_MODEL="llama3.2"
 ```
 
----
-
-## Note Templates
-
-Use the right template when writing your source notes in Obsidian or any markdown editor:
-
-- **Academic paper notes** → `10_System/Templates/Paper Summary Template.md`
-- **Personal knowledge notes** → `10_System/Templates/Default Property Template.md`
-
-The ingest pipeline auto-detects which type of note it's reading and applies the appropriate processing.
+> **Model split**: `INGEST_MODEL` is used by `ingest` for complex document parsing.
+> `LLM_MODEL` is used by everything else (`heal`, `lint`, `query`, `gap`).
+> Change either independently in `.env` without touching any code.
 
 ---
 
@@ -94,70 +94,54 @@ The ingest pipeline auto-detects which type of note it's reading and applies the
 
 ### Ingest
 
-Processes source documents, extracts entities and concepts, and updates the wiki.
+Parses source documents and writes structured wiki pages.
 
 ```bash
-# Ingest a single note
-uv run main.py ingest 20_raw/20.2_notes/my-note.md
+# Ingest a single file
+uv run main.py ingest 20_raw/20.2_notes/my-paper.md
 
-# Ingest a PDF paper
-uv run main.py ingest 20_raw/20.3_pdf/paper.pdf
-
-# Ingest an entire folder
+# Batch ingest an entire folder
 uv run main.py ingest 20_raw/20.2_notes/
 
-# Validate wiki integrity only (no ingest)
-uv run main.py ingest --validate-only
+# Force re-ingest (ignore content hash cache)
+uv run main.py ingest 20_raw/my-paper.md --force
 ```
 
-## Gap Analysis
-```bash
-# Run semantic gap analysis (terminal output)
-uv run main.py gap
-
-# Run and save report to 2_graph/gap-report.md
-uv run main.py gap --save
-
-# Rebuild from wiki pages instead of graph.json
-uv run main.py gap --rebuild
-```
-Finds underconnected topic clusters in your research using 
-local graph algorithms — no external API required. Run after 
-`graph` for best results.
-
-### Query
-
-Ask questions about your knowledge base and get synthesized answers with citations.
-
-```bash
-# Print answer to terminal
-uv run main.py query "what do I know about transformers?"
-
-# Save answer to wiki/syntheses/
-uv run main.py query "what connects my signal processing papers?" --save
-
-# Save to a specific path
-uv run main.py query "methodology gaps?" --save 30_wiki/syntheses/methodology-gaps.md
-```
-
-For interactive multi-turn querying, use Gemini CLI instead (see below).
+Uses `INGEST_MODEL` from `.env` (defaults to `LLM_MODEL` if not set).
 
 ### Graph
 
-Builds a visual knowledge graph from all `[[wikilinks]]` in the wiki.
+Builds a visual knowledge graph from all `[[wikilinks]]` using **Louvain community detection** (pure mathematical clustering — fast, no AI required).
 
 ```bash
 # Build graph.json and graph.html
 uv run main.py graph
 
-# Build and open in browser
+# Build and open in browser immediately
 uv run main.py graph --open
-
-# Skip semantic inference (faster, wikilinks only)
-uv run main.py graph --no-infer
 ```
 
-Run this after every batch ingest to keep the graph current.
+### Serve
+
+Starts a local HTTP server for the interactive knowledge graph UI.
+
+```bash
+uv run main.py serve
+# Opens at http://localhost:8080/graph.html
+```
+
+If port 8080 is already in use (common after a hard stop):
+
+```bash
+fuser -k 8080/tcp && uv run main.py serve
+```
+
+**Graph UI features:**
+- **Cluster filtering**: Check/uncheck individual math clusters in the sidebar. Use **All / None** shortcuts to bulk toggle.
+- **Click a cluster name** to select it for focused AI chat — the AI only considers nodes in that group.
+- **Click any node** to open its detail drawer with full markdown content and related nodes.
+- **AI chat panel**: Ask Gemini (API), Gemini CLI, or a local Ollama model about the selected node, cluster, or the whole graph. Context is injected automatically from your `GEMINI.md` wiki schema.
+- **Rebuild button**: Rebuilds the graph in-place without leaving the browser.
 
 ### Lint
 
@@ -171,7 +155,46 @@ uv run main.py lint
 uv run main.py lint --save
 ```
 
-Checks for: orphan pages, broken `[[wikilinks]]`, missing entity pages, referenced papers not yet ingested, contradictions between pages, data gaps, hub stubs, and fragile bridges between knowledge clusters.
+Checks for: orphan pages, broken `[[wikilinks]]`, missing entity pages, referenced papers not yet ingested, contradictions between pages, stale content, and fragile single-bridge connections between clusters.
+
+### Heal
+
+Auto-generates missing entity pages for terms mentioned 3+ times across the wiki but with no dedicated page. Uses `LLM_MODEL`.
+
+```bash
+# Interactive mode — prompts before each page
+uv run main.py heal
+
+# Auto mode — creates all pages without prompting
+uv run main.py heal --auto
+```
+
+> **Tip**: Run `lint` first to see what's missing, then run `heal` to fix it.
+
+### Gap
+
+Detects underconnected topic clusters and suggests where to find new papers.
+
+```bash
+uv run main.py gap
+
+# Save report to 2_graph/gap-report.md
+uv run main.py gap --save
+```
+
+Run after `graph` for best results.
+
+### Query
+
+Ask questions about your knowledge base and get synthesized answers with `[[wikilink]]` citations.
+
+```bash
+# Print answer to terminal
+uv run main.py query "what do I know about speech biomarkers?"
+
+# Save answer to 30_wiki/syntheses/
+uv run main.py query "what connects my signal processing papers?" --save
+```
 
 ### Refresh
 
@@ -184,49 +207,40 @@ uv run main.py refresh
 # Force re-ingest everything
 uv run main.py refresh --force
 
-# Refresh a specific page
-uv run main.py refresh --page sources/papers/my-paper
-
-# Preview what would be refreshed
+# Preview what would be refreshed without changing anything
 uv run main.py refresh --dry-run
 ```
-
-### Heal
-
-Auto-generates missing entity pages for terms mentioned 3+ times across the wiki but with no dedicated page.
-
-```bash
-uv run main.py heal
-```
-
----
 
 ## Gemini CLI (Interactive Exploration)
 
 ```bash
-cd /path/to/wiki-llm-knowledge
+cd /path/to/your-wiki
 gemini
 ```
 
-Inside Gemini CLI you can use plain English or shorthand triggers:
-- `/wiki-ingest <file>` → run Ingest Workflow
-- `/wiki-query <question>` → run Query Workflow  
-- `/wiki-lint` → run Lint Workflow
-- `/wiki-graph` → run Graph Workflow
-- `/wiki-gap` → run Gap Analysis
-- `/wiki-heal` → run Heal Workflow
-- `/wiki-refresh` → run Refresh Workflow
+Inside Gemini CLI you can use slash commands or plain English:
 
+| Command | Description |
+|---------|-------------|
+| `/wiki-ingest <file>` | Run Ingest Workflow |
+| `/wiki-query <question>` | Run Query Workflow |
+| `/wiki-lint` | Run Lint Workflow |
+| `/wiki-graph` | Run Graph Workflow |
+| `/wiki-gap` | Run Gap Analysis |
+| `/wiki-heal` | Run Heal Workflow |
+| `/wiki-refresh` | Run Refresh Workflow |
+
+> **Note**: Gemini CLI uses your Google account quota (separate from the API key quota). If the API key hits its daily limit, Gemini CLI continues to work.
 
 ---
 
-# Recommended Workflow
+## Recommended Workflow
 
-## After every batch of new papers
+### After every batch of new papers
+
 ```bash
 # 1. Ingest new notes
-uv run main.py ingest 20_raw/papers/my_notes/
-uv run main.py ingest 20_raw/my_knowledge_notes/
+uv run main.py ingest 20_raw/20.2_notes/
 
 # 2. Rebuild knowledge graph
 uv run main.py graph
@@ -234,45 +248,44 @@ uv run main.py graph
 # 3. Check wiki health
 uv run main.py lint
 
-# 4. Fix missing entity pages (run after lint reports 5+ missing)
-uv run main.py heal
+# 4. Fix missing entity pages
+uv run main.py heal --auto
 ```
 
-## Every 10 papers ingested
+### Every 10 papers
+
 ```bash
 # Detect research gaps
-uv run main.py gap
-
-# Save all reports for Obsidian review
-uv run main.py graph --report --save
-uv run main.py lint --save
 uv run main.py gap --save
+
+# Save lint report for Obsidian review
+uv run main.py lint --save
 ```
 
-## When you edit an existing raw file
+### When you edit an existing raw file
+
 ```bash
 # Re-ingest only changed files
 uv run main.py refresh
 
-# Preview what would change without re-ingesting
+# Preview what would change first
 uv run main.py refresh --dry-run
 ```
 
-## Interactive exploration (Gemini CLI)
-```bash
-cd /path/to/wiki-llm-knowledge
-gemini
-```
 
 ## Paper Ingestion with NotebookLM
 
-For extracting paper summaries, use NotebookLM with the 
-provided prompt to generate markdown following 
-`10_System/Templates/Paper_Summary_Template.md`.
+For extracting paper summaries, use NotebookLM to generate structured markdown, then ingest it.
 
 1. Upload your PDF to NotebookLM
-2. Run the extraction prompt (see `10_System/Templates/NotebookLM_Prompt.md`) or use my suggert prompt:
-### Paper prompt
+2. Use the paper prompt below to extract a structured summary
+3. Save to `20_raw/20.2_notes/<slug>.md`
+4. Run `uv run main.py ingest 20_raw/20.2_notes/<slug>.md`
+
+> **Tip**: Fill in `## Personal Critique` and `## Related Notes` yourself before ingesting — these reflect your own thinking and are not extracted automatically.
+
+### Paper Extraction Prompt
+
 ```
 You are a research assistant helping me summarize academic papers into structured markdown notes. I am a researcher in biosignal processing.
 
@@ -321,7 +334,7 @@ Cover ALL of these if present:
 For each technique or method category covered in the review:
 - **Technique name**
   - How it works (1–2 sentences)
-  - Reported pros: (from the review's own assessment)
+  - Reported pros:
   - Reported cons / limitations:
   - Performance on benchmark datasets: (exact numbers if given)
   - Datasets used in reviewed studies: (names, sizes)
@@ -343,20 +356,22 @@ Then add:
 - Consensus limitations across the reviewed studies
 
 ## Personal Critique & Ideas for Future Improvement
-(Skip this section for review/survey papers unless you have a specific view to add)
+(Skip for review/survey papers unless you have a specific view)
 - Write your own critical observations here after reading
 
 ## Related Notes
 - Use [[filename-without-extension]] to link to similar papers already in your notes
 - Only include links you are confident about — do not hallucinate filenames
 ```
-### Book_prompt
+
+### Book Extraction Prompt
+
 ```
 Can you list out all important contents in this book in order to create
 checkpoints for me to find later — like an index of the book but with
 a little bit extra information.
 
-Format your response EXACTLY like this (I will copy it into my wiki system):
+Format your response EXACTLY like this:
 
 ---
 
@@ -379,35 +394,24 @@ One sentence: what is this book's main thesis or contribution?
 
 ### Chapter 1: <Chapter Title>
 - **Core idea**: <1 sentence>
-- **Key concepts**: <comma-separated list of important terms/ideas>
+- **Key concepts**: <comma-separated list>
 - **Key claims**:
   - <claim 1>
   - <claim 2>
-- **Notable quotes**: "> quote here" (include page/location if available)
+- **Notable quotes**: "> quote here" (include page if available)
 
-### Chapter 2: <Chapter Title>
-(repeat same structure)
-
-(continue for all chapters)
+(repeat for all chapters)
 
 ## Cross-Cutting Themes
 - <Theme 1>: appears in chapters X, Y, Z
-- <Theme 2>: appears in chapters X, Y, Z
 
 ## Key Entities
-- <Person/Organization/Product>: <why they matter in this book>
+- <Person/Organization/Product>: <why they matter>
 
-## Related Topics (for linking to other knowledge)
+## Related Topics
 - <Topic 1>
 - <Topic 2>
 ```
-
-3. Save the output to `20_raw/papers/my_notes/<slug>.md`
-4. Run `uv run main.py ingest 20_raw/papers/my_notes/<slug>.md`
-
-> **Note**: Fill in `## Personal Critique` and `## Related Notes` 
-> yourself before ingesting — these sections reflect your own 
-> thinking and are not extracted automatically.
 
 ---
 

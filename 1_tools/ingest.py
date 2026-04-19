@@ -6,7 +6,7 @@ import re
 from pathlib import Path 
 from datetime import date
 
-from utils import _call_gemini, read_file, write_file, extract_wikilinks, append_log, REPO_ROOT, WIKI_DIR, LOG_FILE, INDEX_FILE, OVERVIEW_FILE, SCHEMA_FILE, MANIFEST_FILE, load_manifest
+from utils import _call_gemini, read_file, write_file, extract_wikilinks, append_log, all_wiki_pages, REPO_ROOT, WIKI_DIR, LOG_FILE, INDEX_FILE, OVERVIEW_FILE, SCHEMA_FILE, MANIFEST_FILE, load_manifest
 
 
 def save_manifest(manifest: dict) -> None:
@@ -141,13 +141,6 @@ def update_index(new_entry: str, section: str = "Sources"):
     write_file(INDEX_FILE, content)
     
 
-def all_wiki_pages() -> set[str]:
-    """Return set of all wiki page titles."""
-    pages = set()
-    for p in WIKI_DIR.rglob("*.md"):
-        if p.name not in ("index.md", "overview.md", "log.md"):
-            pages.add(p.stem.lower())
-    return pages
 
 def validate_ingest(changed_pages: list[str] | None = None) -> dict:
     """Validate wiki integrity after an ingest.
@@ -158,7 +151,7 @@ def validate_ingest(changed_pages: list[str] | None = None) -> dict:
 
     Returns dict with 'broken_links' and 'unindexed' lists.
     """
-    existing_pages = all_wiki_pages()
+    existing_pages = {p.stem.lower() for p in all_wiki_pages()}
     index_content = read_file(INDEX_FILE).lower()
 
     # Determine which pages to scan for broken links
@@ -321,8 +314,9 @@ def ingest(source_path:str) -> None:
     note_type = detect_note_type(source, source_content)
     prompt = build_ingest_prompt(source_content, source, wiki_context, schema, today, note_type)
     
-    print(f"Calling API (model: ...)")
-    raw = _call_gemini(prompt, max_tokens=8192)
+    ingest_model = os.getenv("INGEST_MODEL", os.getenv("LLM_MODEL"))
+    print(f"Calling API (model: {ingest_model})")
+    raw = _call_gemini(prompt, max_tokens=8192, model_override=ingest_model)
     try:
         data = parse_json_from_response(raw)
     except (ValueError, json.JSONDecodeError) as e:
@@ -484,14 +478,8 @@ def update_status(action: str, details: str):
                 """
     status_path.write_text(content, encoding="utf-8")
 
-    # NEW — rebuild root ATLAS after every ingest
-    atlas_script = REPO_ROOT.parent / "update_atlas.py"
-    if atlas_script.exists():
-        import subprocess
-        subprocess.run(
-            [sys.executable, str(atlas_script)],
-            cwd=REPO_ROOT.parent
-        )
+    # Status file written.
+    pass
 
 
 if __name__ == "__main__":
@@ -566,6 +554,16 @@ if __name__ == "__main__":
     for p in unique_paths:
         ingest(str(p))
         
+    # NEW — rebuild root ATLAS once after batch completes
+    atlas_script = REPO_ROOT.parent.parent / "update_atlas.py"
+    if atlas_script.exists():
+        import subprocess
+        print("\nUpdating central ATLAS...")
+        subprocess.run(
+            [sys.executable, str(atlas_script)],
+            cwd=REPO_ROOT.parent.parent
+        )
+
     # Run gemini
     if "--handoff" in sys.argv:
         import subprocess

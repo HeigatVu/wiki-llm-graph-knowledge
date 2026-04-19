@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Wiki — Knowledge Graph</title>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<style>
+/* {{graph_css}} */
+</style>
+</head>
+<body>
+<div id="controls">
+  <h3>LLM Wiki Graph</h3>
+  <div class="search-container">
+    <input id="search" type="text" placeholder="Search nodes..." autocomplete="off">
+    <div id="search-results" class="search-results"></div>
+  </div>
+  <div>{{legend_items}}</div>
+  <div class="filter-group">
+    <label>Edge Types</label>
+    <div class="cb-row"><input type="checkbox" id="cb-extracted" checked onchange="applyFilters()"><span style="color:#888">━</span> Explicit Wikilinks ({{n_extracted}})</div>
+  </div>
+  <div class="filter-group">
+    <label>Highlight Direction</label>
+    <div class="cb-row"><input type="checkbox" id="cb-outgoing" checked onchange="applyFilters()"><span style="color:#ff4d4d">→</span> Outgoing Edges</div>
+    <div class="cb-row"><input type="checkbox" id="cb-incoming" checked onchange="applyFilters()"><span style="color:#4dff4d">←</span> Incoming Edges</div>
+  </div>
+  <div class="filter-group">
+    <label>Hubs</label>
+    <div class="cb-row"><input type="checkbox" id="cb-hubs" onchange="applyFilters()"><span style="color:#FFD54F; font-weight:bold;">★</span> Highlight Top 10 Hubs</div>
+  </div>
+  <div class="filter-group">
+    <label style="display:flex; justify-content:space-between; align-items:center;">
+      Clusters
+      <div style="font-size:9px; color:#888; font-weight:normal; display:flex; gap:8px;">
+        <span onclick="toggleAllClusters(true)" style="cursor:pointer; color:#86c8ff;">All</span>
+        <span onclick="toggleAllClusters(false)" style="cursor:pointer; color:#86c8ff;">None</span>
+      </div>
+    </label>
+    <div id="cluster-list" style="font-size:11px; color:#aaa; max-height:200px; overflow-y:auto; line-height:1.5;">
+      <div style="font-style:italic; opacity:0.6;">Wait for graph build...</div>
+    </div>
+  </div>
+  <div class="filter-group">
+    <label>Pathfinding</label>
+    <div class="path-row">
+      <div class="search-container" style="flex:1;">
+        <input type="text" id="path-start" class="path-input" placeholder="Start..." autocomplete="off">
+        <div id="path-start-results" class="search-results small"></div>
+      </div>
+      <div class="search-container" style="flex:1;">
+        <input type="text" id="path-end" class="path-input" placeholder="End..." autocomplete="off">
+        <div id="path-end-results" class="search-results small"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button id="btn-find-path" class="btn-path">Find Path</button>
+      <button id="btn-clear-path" class="btn-clear">Clear</button>
+    </div>
+    <div id="path-result" style="margin-top:6px;font-size:11px;color:#FFD54F;display:none;"></div>
+  </div>
+  <div class="filter-group">
+    <label>Min Confidence</label>
+    <div class="slider-row">
+      <input type="range" id="conf-slider" min="0" max="100" value="50" oninput="applyFilters()">
+      <span class="slider-val" id="conf-val">0.50</span>
+    </div>
+  </div>
+  <div class="filter-group" id="timeline-group" style="display:none;">
+    <label>Timeline Filter</label>
+    <div class="slider-row">
+      <input type="range" id="time-slider" oninput="updateTimeline()">
+      <span class="slider-val" id="time-val" style="min-width:60px;"></span>
+    </div>
+  </div>
+  <p>Click a node to highlight its connected neighbors and view the markdown on the right. Click the background to restore the full graph.</p>
+</div>
+<div id="graph"></div>
+
+<!-- Global Query UI -->
+<button id="btn-global-query" style="position:fixed;bottom:20px;left:20px;z-index:100;padding:12px 20px;background:#1a1d2e;color:#86c8ff;border:1px solid rgba(134,200,255,0.3);border-radius:24px;cursor:pointer;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.5);font-weight:bold;transition:0.2s;" onclick="toggleGlobalQuery()">
+  ✨ Global Wiki Query
+</button>
+
+<button id="btn-rebuild" onclick="rebuildGraph()" style="position:fixed;bottom:20px;left:210px;z-index:100;padding:12px 20px;background:#1a1d2e;color:#a0e0a0;border:1px solid rgba(160,224,160,0.3);border-radius:24px;cursor:pointer;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.5);font-weight:bold;transition:0.2s;">
+  🔄 Rebuild Graph
+</button>
+
+<div id="rebuild-toast" style="display:none;position:fixed;bottom:70px;left:210px;z-index:100;max-width:340px;background:#1a1d2e;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:14px 16px;box-shadow:0 8px 24px rgba(0,0,0,0.6);font-size:13px;color:#ccc;line-height:1.5;">
+  <div id="rebuild-toast-msg"></div>
+</div>
+
+<div id="global-query-panel" style="display:none;position:fixed;bottom:70px;left:20px;z-index:100;width:400px;background:#1a1d2e;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,0.6);display:flex;flex-direction:column;gap:10px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <h3 style="margin:0;color:#ddd;font-size:15px;">Search Entire Wiki</h3>
+    <button onclick="toggleGlobalQuery()" style="background:none;border:none;color:#888;cursor:pointer;font-size:16px;">&times;</button>
+  </div>
+  <div id="global-query-history" style="max-height:300px;min-height:100px;overflow-y:auto;font-size:13px;color:#ccc;display:flex;flex-direction:column;gap:8px;"></div>
+  <div style="display:flex;gap:6px;">
+    <input type="text" id="global-query-input" placeholder="What are the main themes?" style="flex:1;background:#222;color:#eee;border:1px solid #444;border-radius:4px;padding:8px;font-size:13px;" onkeypress="if(event.key === 'Enter') sendGlobalQuery()">
+    <select id="global-query-model" style="background:#222;color:#eee;border:1px solid #444;border-radius:4px;padding:8px;font-size:13px;cursor:pointer;">
+      <option value="gemini">Gemini API</option>
+      <option value="gemini-cli">Gemini CLI</option>
+      <option value="ollama">Ollama</option>
+    </select>
+    <button onclick="sendGlobalQuery()" style="padding:8px 14px;background:rgba(134,200,255,0.15);color:#86c8ff;border:1px solid rgba(134,200,255,0.3);border-radius:4px;cursor:pointer;font-size:13px;">Ask</button>
+  </div>
+</div>
+
+<aside id="drawer">
+  <div id="drawer-header">
+    <div id="drawer-topline">
+      <h2 id="drawer-title"></h2>
+      <button id="drawer-close" onclick="clearSelection()" aria-label="Close drawer">×</button>
+    </div>
+    <div id="drawer-meta"></div>
+    <div id="drawer-path"></div>
+    <div id="drawer-preview"></div>
+  </div>
+  <div id="drawer-related">
+    Related nodes
+    <div id="drawer-related-list"></div>
+  </div>
+  <div id="drawer-content">
+    <div id="drawer-markdown" class="markdown-body"></div>
+  </div>
+  <div id="drawer-chat" style="margin-top: auto; padding: 16px 18px; border-top: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2);">
+    <h4 style="margin: 0 0 8px; color: #bbb; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Ask AI about this node</h4>
+    <div id="chat-history" style="max-height: 150px; overflow-y: auto; font-size: 13px; color: #ddd; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;"></div>
+    <div style="display:flex;gap:6px;">
+      <input type="text" id="chat-input" placeholder="Type a question..." style="flex:1;background:#222;color:#eee;border:1px solid #444;border-radius:4px;padding:8px;font-size:13px;" onkeypress="if(event.key === 'Enter') sendChat()">
+      <select id="chat-model" style="background:#222;color:#eee;border:1px solid #444;border-radius:4px;padding:8px;font-size:13px;cursor:pointer;">
+        <option value="gemini">Gemini API</option>
+        <option value="gemini-cli">Gemini CLI</option>
+        <option value="ollama">Ollama</option>
+      </select>
+      <button id="btn-chat" onclick="sendChat()" style="padding:8px 14px;background:rgba(134,200,255,0.15);color:#86c8ff;border:1px solid rgba(134,200,255,0.3);border-radius:4px;cursor:pointer;font-size:13px;">Send</button>
+    </div>
+  </div>
+</aside>
+<div id="stats"></div>
+
+<script>
+window.originalNodes = {{nodes_json}};
+window.originalEdges = {{edges_json}}.map(edge => ({
+  ...edge,
+  id: edge.id || `${edge.from}->${edge.to}:${edge.type || "EXTRACTED"}`,
+}));
+window.communities = {{communities_json}};
+window.communityNames = {{community_names_json}};
+window.themeToMath = {{theme_to_math_json}};
+</script>
+<script>
+/* {{graph_js}} */
+</script>
+</body>
+</html>

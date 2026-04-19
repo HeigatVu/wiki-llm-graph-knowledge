@@ -5,13 +5,10 @@ import argparse
 from pathlib import Path
 from datetime import date
 
-import os
-from utils import _call_ollama
-
-from utils import _call_ollama, read_file, write_file, append_log, safe_wiki_path, REPO_ROOT, WIKI_DIR, LOG_FILE, INDEX_FILE, OVERVIEW_FILE, SCHEMA_FILE
+from utils import _call_ollama, _call_gemini, call_gemini_cli, read_file, write_file, append_log, safe_wiki_path, REPO_ROOT, WIKI_DIR, LOG_FILE, INDEX_FILE, OVERVIEW_FILE, SCHEMA_FILE
 
 
-def find_relevant_pages(question: str, index_content: str) -> list[Path]:
+def find_relevant_pages(question: str, index_content: str, model: str = "ollama") -> list[Path]:
     """Ask the LLM to identify relevant pages from the index."""
     prompt = f"""Given this wiki index:
 
@@ -28,10 +25,17 @@ def find_relevant_pages(question: str, index_content: str) -> list[Path]:
             Examples: ["sources/papers/slug.md", "sources/notes/slug.md", "concepts/Bar.md"]
             Maximum 10 pages.
             """
-    raw = _call_ollama(prompt, max_tokens=512)
+    if model == "gemini-cli":
+        raw = call_gemini_cli(prompt)
+    elif model == "gemini":
+        raw = _call_gemini(prompt, max_tokens=512)
+    else:
+        raw = _call_ollama(prompt, max_tokens=512)
     raw = raw.strip()
-    raw = re.sub(r"^```(?:json)?\s*", "", raw)
-    raw = re.sub(r"\s*```$", "", raw)
+    # Try to find a JSON array in the output
+    json_match = re.search(r"(\[[\s\S]*\])", raw)
+    if json_match:
+        raw = json_match.group(1)
     try:
         paths = json.loads(raw)
         relevant = [WIKI_DIR / p for p in paths if (WIKI_DIR / p).exists()]
@@ -46,7 +50,7 @@ def find_relevant_pages(question: str, index_content: str) -> list[Path]:
     return relevant[:15]
 
 
-def query(question: str, save_path: str | None = None):
+def query(question: str, save_path: str | None = None, model: str = "ollama"):
     today = date.today().isoformat()
 
     # Step 1: Read index
@@ -56,7 +60,7 @@ def query(question: str, save_path: str | None = None):
         sys.exit(1)
 
     # Step 2: Find relevant pages
-    relevant_pages = find_relevant_pages(question, index_content)
+    relevant_pages = find_relevant_pages(question, index_content, model=model)
 
     # If no keyword match, ask Claude to identify relevant pages from the index
     if not relevant_pages or len(relevant_pages) <= 1:
@@ -76,10 +80,17 @@ def query(question: str, save_path: str | None = None):
             Examples: ["sources/papers/slug.md", "sources/notes/slug.md", "concepts/Bar.md"]
             Maximum 10 pages.
             """
-        raw = _call_ollama(prompt, max_tokens=512)
+        if model == "gemini-cli":
+            raw = call_gemini_cli(prompt)
+        elif model == "gemini":
+            raw = _call_gemini(prompt, max_tokens=512)
+        else:
+            raw = _call_ollama(prompt, max_tokens=512)
         raw = raw.strip()
-        raw = re.sub(r"^```(?:json)?\s*", "", raw)
-        raw = re.sub(r"\s*```$", "", raw)
+        # Try to find a JSON array in the output
+        json_match = re.search(r"(\[[\s\S]*\])", raw)
+        if json_match:
+            raw = json_match.group(1)
         try:
             paths = json.loads(raw)
             relevant_pages = [WIKI_DIR / p for p in paths if (WIKI_DIR / p).exists()]
@@ -116,7 +127,12 @@ def query(question: str, save_path: str | None = None):
 
         Write a well-structured markdown answer with headers, bullets, and [[wikilink]] citations. At the end, add a ## Sources section listing the pages you drew from.
         """
-    answer = _call_ollama(prompt, max_tokens=4096)
+    if model == "gemini-cli":
+        answer = call_gemini_cli(prompt)
+    elif model == "gemini":
+        answer = _call_gemini(prompt, max_tokens=4096)
+    else:
+        answer = _call_ollama(prompt, max_tokens=4096)
     print("\n" + "=" * 60)
     print(answer)
     print("=" * 60)
@@ -166,6 +182,8 @@ def query(question: str, save_path: str | None = None):
     # Append to log
     append_log(f"## [{today}] query | {question[:80]}\n\nSynthesized answer from {len(relevant_pages)} pages." +
                (f" Saved to {save_path}." if save_path else ""))
+    
+    return answer
 
 
 if __name__ == "__main__":
@@ -173,5 +191,7 @@ if __name__ == "__main__":
     parser.add_argument("question", help="Question to ask the wiki")
     parser.add_argument("--save", nargs="?", const="", default=None,
                         help="Save answer to wiki (optionally specify path)")
+    parser.add_argument("--model", choices=["ollama", "gemini", "gemini-cli"], default="ollama",
+                        help="Choose which LLM backend to use (default: ollama)")
     args = parser.parse_args()
-    query(args.question, args.save)
+    query(args.question, args.save, args.model)
