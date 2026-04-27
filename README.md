@@ -288,14 +288,23 @@ For extracting paper summaries, use NotebookLM to generate structured markdown, 
 ### Paper Extraction Prompt
 
 ```
-You are a research assistant helping me summarize academic papers into structured markdown notes. I am a researcher in biosignal processing.
+You are a helpful research assistant helping me summarize academic papers into structured markdown notes. I am a researcher in biosignal processing.
 
-First, classify the paper type before filling any section:
-- EMPIRICAL: presents new experiments, datasets, models, or systems
-- REVIEW / SURVEY: synthesizes existing literature without new experiments
-Write [PAPER TYPE: EMPIRICAL] or [PAPER TYPE: REVIEW] on the very first line of your output, then the frontmatter block.
+## Step 1: Classify the paper
 
-Extract information from this paper and return ONLY a markdown note using EXACTLY this format — no extra text, no preamble:
+Before filling any section, classify the paper as one of:
+- **EMPIRICAL**: presents new experiments, datasets, models, or systems
+- **REVIEW / SURVEY**: synthesizes existing literature without new experiments
+
+Write `[PAPER TYPE: EMPIRICAL]` or `[PAPER TYPE: REVIEW]` on the very first line of your output, then the frontmatter block.
+
+## Step 2: N/A rule (applies to every section below)
+
+If a field is genuinely absent from the paper, write `N/A` and nothing else for that field. Do **not** infer, guess, or fabricate. Do **not** silently skip a field — explicit `N/A` tells the reader "this paper does not address this," which is itself useful information. This is especially common for biosignal/ML papers that have no human theoretical framework or no formal hypotheses.
+
+## Step 3: Output format
+
+Return ONLY a markdown note using EXACTLY the format below — no extra text, no preamble, no closing remarks.
 
 ---
 
@@ -312,11 +321,57 @@ tags:
 ---
 
 ## Core Contribution
-One sentence: what specific problem does this paper solve and what is the key novelty?
+
+Two sentences maximum:
+1. **Gap → contribution**: what specific gap in the existing literature does this paper address, and what does it add? (e.g., "Prior work on X assumed Y; this paper relaxes that assumption by Z.")
+2. **Key novelty**: the single most distinctive technical or conceptual element.
+
+## Theoretical / Conceptual Framework
+
+- **Framework name** (e.g., "Theory of Planned Behavior," "Andersen's Model," "deep learning — no explicit theoretical framework"): one line
+- **How variables relate**: one sentence describing the model's predicted structure (e.g., "behavioral intention mediates the effect of attitudes and norms on physical activity")
+- If the paper has no human-behavioral or domain theory and is purely engineering/signal-processing, write: `N/A — engineering paper, no theoretical framework`
+
+## Research Questions
+
+- **Descriptive questions**: list each question the paper asks about *what is the case* (levels, prevalences, distributions)
+- **Inferential questions**: list each question the paper asks about *relationships* between variables
+
+If the paper does not state explicit research questions, infer them from the abstract/introduction and prefix each with `[inferred]`.
+
+## Hypotheses
+
+For each hypothesis the paper states or tests:
+- **H1**: statement
+  - Direction: `directional (positive)` | `directional (negative)` | `non-directional` | `N/A`
+  - Type: `association` | `causal` | `N/A`
+  - Grounding: one phrase on what theory or prior finding the hypothesis comes from
+
+If the paper is purely descriptive/engineering and has no hypotheses, write `N/A` for the whole section.
+
+## Variables
+
+### Independent variables
+For each:
+- **Name**: definition (include units / measurement scale: nominal | ordinal | interval | ratio)
+
+### Dependent variables
+For each:
+- **Name**: definition (include units / measurement scale)
+
+For ML/biosignal papers, "input features" map to independent variables and "predicted labels / regression target" map to dependent variables.
+
+## Sampling
+
+- **Target population**: who the findings are meant to generalize to
+- **Sampling method**: `random (equal/self-weighted)` | `random (stratified or weighted)` | `convenience` | `snowball` | `quota` | `systematic` | `N/A — public dataset` | etc.
+- **Sample size and demographics**: N, age range, sex/gender split, clinical status, recording site count
+- **Representativeness concern**: one sentence — does the sample plausibly represent the target population, or is there a clear mismatch (e.g., single-clinic convenience sample claiming general-population conclusions)?
 
 ## Key Methodology (Important)
 
 ### If EMPIRICAL paper:
+
 For each method or technique, include:
 - **Method name**: what it is in one line
   - Input: signal/data type, sampling rate, channels if mentioned
@@ -326,12 +381,13 @@ For each method or technique, include:
 
 Cover ALL of these if present:
 - Signal acquisition setup (hardware, electrode placement, sampling rate)
-- Preprocessing pipeline (filtering, artifact removal, segmentation)
+- Preprocessing pipeline (filtering, artifact removal, segmentation, data cleaning)
 - Feature extraction methods
 - Classification or modeling approach
-- Evaluation protocol (dataset, cross-validation strategy, metrics)
+- Evaluation protocol (dataset, cross-validation strategy, metrics, statistical tests used per hypothesis — parametric vs. nonparametric and why)
 
 ### If REVIEW / SURVEY paper:
+
 For each technique or method category covered in the review:
 - **Technique name**
   - How it works (1–2 sentences)
@@ -347,71 +403,34 @@ Then add:
 ## Results & Conclusions
 
 ### If EMPIRICAL:
-- 3–5 bullet points of key quantitative results (include exact numbers)
+- 3–5 bullet points of key quantitative results (include exact numbers and confidence intervals / p-values when given)
+- For each hypothesis listed above: `H1: supported | not supported | partially supported | N/A`
 - Main conclusion (one sentence)
-- Stated limitations (one sentence)
 
 ### If REVIEW / SURVEY:
 - Summary of the field's overall performance landscape (one paragraph)
 - Which technique category performs best and under what conditions
 - Consensus limitations across the reviewed studies
 
+## Assumptions, Limitations, Delimitations
+
+- **Assumptions**: things the paper takes as true without direct evidence (e.g., "self-reports of activity are honest," "electrode contact remained stable across the recording")
+- **Limitations**: weaknesses that threaten validity (small N, low response rate, no random assignment, single-site recording, class imbalance, etc.) — list ones the authors state AND ones you can identify
+- **Delimitations**: boundaries the authors deliberately set (e.g., "adults only," "right-handed participants only," "noise-free recording conditions only")
+
+Mark author-stated items as `[stated]` and your own observations as `[observed]`.
+
 ## Personal Critique & Ideas for Future Improvement
-(Skip for review/survey papers unless you have a specific view)
-- Write your own critical observations here after reading
+
+(Skip for review/survey papers unless you have a specific view.)
+- Write your own critical observations here after reading.
 
 ## Related Notes
-- Use [[filename-without-extension]] to link to similar papers already in your notes
-- Only include links you are confident about — do not hallucinate filenames
-```
 
-### Book Extraction Prompt
+- Use `[[filename-without-extension]]` to link to similar papers already in your notes.
+- Only include links you are confident about — do not hallucinate filenames.
 
-```
-Can you list out all important contents in this book in order to create
-checkpoints for me to find later — like an index of the book but with
-a little bit extra information.
-
-Format your response EXACTLY like this:
-
----
-
-Title: "<Book Title>"
-
-Authors: "<Author Names>"
-
-Year: <YYYY>
-
-Source: "NotebookLM grounded extraction"
-
-tags: [book]
-
----
-
-## Core Contribution
-One sentence: what is this book's main thesis or contribution?
-
-## Chapter Checkpoints
-
-### Chapter 1: <Chapter Title>
-- **Core idea**: <1 sentence>
-- **Key concepts**: <comma-separated list>
-- **Key claims**:
-  - <claim 1>
-  - <claim 2>
-- **Notable quotes**: "> quote here" (include page if available)
-
-(repeat for all chapters)
-
-## Cross-Cutting Themes
-- <Theme 1>: appears in chapters X, Y, Z
-
-## Key Entities
-- <Person/Organization/Product>: <why they matter>
-
-## Related Topics
-- <Topic 1>
-- <Topic 2>
+REMINDER: Output ONLY the markdown note above. No preamble, no closing remarks, no commentary on the extraction process.
 ```
 
 ---
